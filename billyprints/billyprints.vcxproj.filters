@@ -27,22 +27,10 @@
       <Filter>Include\imgui\imnodes</Filter>
     </ClCompile>
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="Nodes\AND.cpp">
-      <Filter>Nodes</Filter>
-    </ClCompile>
     <ClCompile Include="Nodes\Gate.cpp">
       <Filter>Nodes</Filter>
     </ClCompile>
     <ClCompile Include="Nodes\Node.cpp">
-      <Filter>Nodes</Filter>
-    </ClCompile>
-    <ClCompile Include="Nodes\NOT.cpp">
-      <Filter>Nodes</Filter>
-    </ClCompile>
-    <ClCompile Include="Nodes\OR.cpp">
-      <Filter>Nodes</Filter>
-    </ClCompile>
-    <ClCompile Include="Nodes\Source.cpp">
       <Filter>Nodes</Filter>
     </ClCompile>
     <ClCompile Include="Editor\Connection.cpp">
@@ -50,6 +38,18 @@
     </ClCompile>
     <ClCompile Include="Editor\NodeEditor.cpp">
       <Filter>Editor</Filter>
+    </ClCompile>
+    <ClCompile Include="Nodes\AND.cpp">
+      <Filter>Nodes\Gates</Filter>
+    </ClCompile>
+    <ClCompile Include="Nodes\NOT.cpp">
+      <Filter>Nodes\Gates</Filter>
+    </ClCompile>
+    <ClCompile Include="Nodes\OR.cpp">
+      <Filter>Nodes\Gates</Filter>
+    </ClCompile>
+    <ClCompile Include="Nodes\Source.cpp">
+      <Filter>Nodes\Special</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -87,22 +87,10 @@
     <ClInclude Include="..\libs\imgui\imstb_truetype.h">
       <Filter>Include\imgui</Filter>
     </ClInclude>
-    <ClInclude Include="Nodes\AND.hpp">
-      <Filter>Nodes</Filter>
-    </ClInclude>
     <ClInclude Include="Nodes\Gate.hpp">
       <Filter>Nodes</Filter>
     </ClInclude>
     <ClInclude Include="Nodes\Node.hpp">
-      <Filter>Nodes</Filter>
-    </ClInclude>
-    <ClInclude Include="Nodes\NOT.hpp">
-      <Filter>Nodes</Filter>
-    </ClInclude>
-    <ClInclude Include="Nodes\OR.hpp">
-      <Filter>Nodes</Filter>
-    </ClInclude>
-    <ClInclude Include="Nodes\Source.hpp">
       <Filter>Nodes</Filter>
     </ClInclude>
     <ClInclude Include="Editor\Connection.hpp">
@@ -110,6 +98,18 @@
     </ClInclude>
     <ClInclude Include="Editor\NodeEditor.hpp">
       <Filter>Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="Nodes\AND.hpp">
+      <Filter>Nodes\Gates</Filter>
+    </ClInclude>
+    <ClInclude Include="Nodes\NOT.hpp">
+      <Filter>Nodes\Gates</Filter>
+    </ClInclude>
+    <ClInclude Include="Nodes\OR.hpp">
+      <Filter>Nodes\Gates</Filter>
+    </ClInclude>
+    <ClInclude Include="Nodes\Source.hpp">
+      <Filter>Nodes\Special</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -130,6 +130,12 @@
     </Filter>
     <Filter Include="Editor">
       <UniqueIdentifier>{923149e5-08b8-49bf-9e68-f73bfd6358a8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Nodes\Gates">
+      <UniqueIdentifier>{c92d98b5-754f-4066-aa06-6e0d37841cbd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Nodes\Special">
+      <UniqueIdentifier>{bf6690bf-834d-4013-82a5-d45be7e5760c}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>
