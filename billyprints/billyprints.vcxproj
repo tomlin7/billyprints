@@ -186,15 +186,15 @@
     <ClInclude Include="..\libs\imgui\imstb_truetype.h" />
     <ClInclude Include="..\libs\imnodes\ImNodes.h" />
     <ClInclude Include="..\libs\imnodes\ImNodesEz.h" />
-    <ClInclude Include="Editor\Connection.h" />
-    <ClInclude Include="Editor\NodeEditor.h" />
-    <ClInclude Include="Nodes\AND.h" />
-    <ClInclude Include="Nodes\Gate.h" />
-    <ClInclude Include="Nodes\Node.h" />
-    <ClInclude Include="Nodes\NOT.h" />
-    <ClInclude Include="Nodes\OR.h" />
-    <ClInclude Include="Nodes\Source.h" />
-    <ClInclude Include="pch.h" />
+    <ClInclude Include="Editor\Connection.hpp" />
+    <ClInclude Include="Editor\NodeEditor.hpp" />
+    <ClInclude Include="Nodes\AND.hpp" />
+    <ClInclude Include="Nodes\Gate.hpp" />
+    <ClInclude Include="Nodes\Node.hpp" />
+    <ClInclude Include="Nodes\NOT.hpp" />
+    <ClInclude Include="Nodes\OR.hpp" />
+    <ClInclude Include="Nodes\Source.hpp" />
+    <ClInclude Include="pch.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

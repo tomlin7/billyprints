@@ -53,7 +53,7 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="pch.h" />
+    <ClInclude Include="pch.hpp" />
     <ClInclude Include="..\libs\imgui\imgui_internal.h">
       <Filter>Include\imgui</Filter>
     </ClInclude>
@@ -87,28 +87,28 @@
     <ClInclude Include="..\libs\imgui\imstb_truetype.h">
       <Filter>Include\imgui</Filter>
     </ClInclude>
-    <ClInclude Include="Nodes\AND.h">
+    <ClInclude Include="Nodes\AND.hpp">
       <Filter>Nodes</Filter>
     </ClInclude>
-    <ClInclude Include="Nodes\Gate.h">
+    <ClInclude Include="Nodes\Gate.hpp">
       <Filter>Nodes</Filter>
     </ClInclude>
-    <ClInclude Include="Nodes\Node.h">
+    <ClInclude Include="Nodes\Node.hpp">
       <Filter>Nodes</Filter>
     </ClInclude>
-    <ClInclude Include="Nodes\NOT.h">
+    <ClInclude Include="Nodes\NOT.hpp">
       <Filter>Nodes</Filter>
     </ClInclude>
-    <ClInclude Include="Nodes\OR.h">
+    <ClInclude Include="Nodes\OR.hpp">
       <Filter>Nodes</Filter>
     </ClInclude>
-    <ClInclude Include="Nodes\Source.h">
+    <ClInclude Include="Nodes\Source.hpp">
       <Filter>Nodes</Filter>
     </ClInclude>
-    <ClInclude Include="Editor\Connection.h">
+    <ClInclude Include="Editor\Connection.hpp">
       <Filter>Editor</Filter>
     </ClInclude>
-    <ClInclude Include="Editor\NodeEditor.h">
+    <ClInclude Include="Editor\NodeEditor.hpp">
       <Filter>Editor</Filter>
     </ClInclude>
   </ItemGroup>

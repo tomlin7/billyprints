@@ -1,5 +1,5 @@
-#include "pch.h"
-#include "NodeEditor.h"
+#include "pch.hpp"
+#include "NodeEditor.hpp"
 
 static void glfw_error_callback(int error, const char* description)
 {
