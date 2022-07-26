@@ -1,11 +1,11 @@
 #include "Gate.hpp"
 
-Gate::Gate(const char* title,
-    const std::vector<ImNodes::Ez::SlotInfo>&& input_slots,
-    const std::vector<ImNodes::Ez::SlotInfo>&& output_slots)
-    : Node(title, std::move(input_slots), std::move(output_slots))
+Gate::Gate(const char* _title,
+    std::vector<ImNodes::Ez::SlotInfo>&& _inputSlots,
+    std::vector<ImNodes::Ez::SlotInfo>&& _outputSlots)
+    : Node(_title, std::move(_inputSlots), std::move(_outputSlots))
 { }
 
 bool Gate::Evaluate() { 
-    return Value;
+    return value;
 }

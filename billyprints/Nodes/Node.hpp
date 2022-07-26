@@ -7,21 +7,21 @@ class Node
 {
 public:
     /// Node title
-    const char* Title = nullptr;
-    bool Selected = false;
-    ImVec2 Pos{};
-    bool Value = false;
+    const char* title = nullptr;
+    bool selected = false;
+    ImVec2 pos{};
+    bool value = false;
 
-    std::vector<Connection> Connections{};
-    std::vector<ImNodes::Ez::SlotInfo> InputSlots{};
-    std::vector<ImNodes::Ez::SlotInfo> OutputSlots{};
+    std::vector<Connection> connections{};
+    std::vector<ImNodes::Ez::SlotInfo> inputSlots{};
+    std::vector<ImNodes::Ez::SlotInfo> outputSlots{};
 
-    int InputSlotCount;
-    int OutputSlotCount;
+    int inputSlotCount;
+    int outputSlotCount;
 
     Node(const char* title,
-        const std::vector<ImNodes::Ez::SlotInfo>&& input_slots,
-        const std::vector<ImNodes::Ez::SlotInfo>&& output_slots);
+        std::vector<ImNodes::Ez::SlotInfo>&& _inputSlots,
+        std::vector<ImNodes::Ez::SlotInfo>&& _outputSlots);
     void DeleteConnection(const Connection& connection);
     virtual bool Evaluate();
 };

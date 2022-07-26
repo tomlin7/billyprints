@@ -10,20 +10,20 @@ bool AND::Evaluate() {
 	//return true;
 
 	int len = 0;
-	for (const auto& cn : Connections)
-		if (cn.InputNode == this)
+	for (const auto& cn : connections)
+		if (cn.inputNode == this)
 			len++;
 
-	if (len < InputSlotCount) return false;
+	if (len < inputSlotCount) return false;
 
 	// ALL
-	for (const auto& cn : Connections) {
-		if (cn.InputNode == this && !((Node*)cn.OutputNode)->Value) {
-			Value = false;
-			return Value;
+	for (const auto& cn : connections) {
+		if (cn.inputNode == this && !((Node*)cn.outputNode)->value) {
+			value = false;
+			return value;
 		}
 	}
 
-	Value = true;
-	return Value;
+	value = true;
+	return value;
 }

@@ -2,10 +2,10 @@
 
 bool Connection::operator==(const Connection& other) const
 {
-    return InputNode == other.InputNode &&
-        InputSlot == other.InputSlot &&
-        OutputNode == other.OutputNode &&
-        OutputSlot == other.OutputSlot;
+    return inputNode == other.inputNode &&
+        inputSlot == other.inputSlot &&
+        outputNode == other.outputNode &&
+        outputSlot == other.outputSlot;
 };
 
 bool Connection::operator!=(const Connection& other) const

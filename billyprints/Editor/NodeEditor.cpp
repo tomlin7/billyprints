@@ -1,31 +1,31 @@
 #include "NodeEditor.hpp"
 
 inline void NodeEditor::RenderNode(Node* node) {
-    if (ImNodes::Ez::BeginNode(node, node->Title, &node->Pos, &node->Selected))
+    if (ImNodes::Ez::BeginNode(node, node->title, &node->pos, &node->selected))
     {
-        ImNodes::Ez::InputSlots(node->InputSlots.data(), static_cast<int>(node->InputSlots.size()));
+        ImNodes::Ez::InputSlots(node->inputSlots.data(), static_cast<int>(node->inputSlots.size()));
         ImGui::Text("%d", (Node*)node->Evaluate());
-        ImNodes::Ez::OutputSlots(node->OutputSlots.data(), static_cast<int>(node->OutputSlots.size()));
+        ImNodes::Ez::OutputSlots(node->outputSlots.data(), static_cast<int>(node->outputSlots.size()));
 
         Connection new_connection;
-        if (ImNodes::GetNewConnection(&new_connection.InputNode, &new_connection.InputSlot,
-            &new_connection.OutputNode, &new_connection.OutputSlot))
+        if (ImNodes::GetNewConnection(&new_connection.inputNode, &new_connection.inputSlot,
+            &new_connection.outputNode, &new_connection.outputSlot))
         {
-            ((Node*)new_connection.InputNode)->Connections.push_back(new_connection);
-            ((Node*)new_connection.OutputNode)->Connections.push_back(new_connection);
+            ((Node*)new_connection.inputNode)->connections.push_back(new_connection);
+            ((Node*)new_connection.outputNode)->connections.push_back(new_connection);
         }
 
         // Render connections
-        for (const Connection& connection : node->Connections)
+        for (const Connection& connection : node->connections)
         {
-            if (connection.OutputNode != node)
+            if (connection.outputNode != node)
                 continue;
 
-            if (!ImNodes::Connection(connection.InputNode, connection.InputSlot, connection.OutputNode,
-                connection.OutputSlot))
+            if (!ImNodes::Connection(connection.inputNode, connection.inputSlot, connection.outputNode,
+                connection.outputSlot))
             {
-                ((Node*)connection.InputNode)->DeleteConnection(connection);
-                ((Node*)connection.OutputNode)->DeleteConnection(connection);
+                ((Node*)connection.inputNode)->DeleteConnection(connection);
+                ((Node*)connection.outputNode)->DeleteConnection(connection);
             }
         }
         ImNodes::Ez::EndNode();
@@ -39,20 +39,20 @@ inline void NodeEditor::RenderNodes() {
 
         RenderNode(node);
 
-        if (node->Selected && ImGui::IsKeyPressedMap(ImGuiKey_Delete) && ImGui::IsWindowFocused())
+        if (node->selected && ImGui::IsKeyPressedMap(ImGuiKey_Delete) && ImGui::IsWindowFocused())
         {
-            for (auto& connection : node->Connections)
+            for (auto& connection : node->connections)
             {
-                if (connection.OutputNode == node)
+                if (connection.outputNode == node)
                 {
-                    ((Node*)connection.InputNode)->DeleteConnection(connection);
+                    ((Node*)connection.inputNode)->DeleteConnection(connection);
                 }
                 else
                 {
-                    ((Node*)connection.OutputNode)->DeleteConnection(connection);
+                    ((Node*)connection.outputNode)->DeleteConnection(connection);
                 }
             }
-            node->Connections.clear();
+            node->connections.clear();
 
             delete node;
             it = nodes.erase(it);
@@ -68,7 +68,7 @@ inline void NodeEditor::RenderContextMenu() {
         for (const auto& desc : available_nodes)
         {
             auto item = desc();
-            if (ImGui::MenuItem(item->Title))
+            if (ImGui::MenuItem(item->title))
             {
                 nodes.push_back(item);
                 ImNodes::AutoPositionNode(nodes.back());

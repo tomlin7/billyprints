@@ -4,14 +4,14 @@ class Connection
 {
 public:
     /// `id` of input node
-    void* InputNode = nullptr;
+    void* inputNode = nullptr;
     /// Descriptor of input slot
-    const char* InputSlot = nullptr;
+    const char* inputSlot = nullptr;
 
     /// `id` of output node
-    void* OutputNode = nullptr;
+    void* outputNode = nullptr;
     /// Descriptor of output slot
-    const char* OutputSlot = nullptr;
+    const char* outputSlot = nullptr;
 
     bool operator==(const Connection& other) const;
     bool operator!=(const Connection& other) const;

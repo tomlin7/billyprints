@@ -9,13 +9,13 @@ bool OR::Evaluate() {
 	//return false;
 	
 	// ANY
-	for (const auto &cn : Connections) {
-		if (cn.InputNode == this && ((Node*)cn.OutputNode)->Value) {
-			Value = true;
-			return Value;
+	for (const auto &cn : connections) {
+		if (cn.inputNode == this && ((Node*)cn.outputNode)->value) {
+			value = true;
+			return value;
 		}
 	}
 	
-	Value = false;
-	return Value;
+	value = false;
+	return value;
 }
