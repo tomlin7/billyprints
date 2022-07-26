@@ -1,0 +1,27 @@
+## OSX artifacts
+.DS_Store
+
+## Dear ImGui artifacts
+imgui.ini
+
+## General build artifacts
+*.o
+*.obj
+*.exe
+/billyprints/build/*
+/billyprints/Debug/*
+/billyprints/Release/*
+/billyprints/x64/*
+
+## Visual Studio artifacts
+.vs
+ipch
+*.opensdf
+*.log
+*.pdb
+*.ilk
+*.user
+*.sdf
+*.suo
+*.VC.db
+*.VC.VC.opendb
