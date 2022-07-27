@@ -166,12 +166,14 @@
     <ClCompile Include="Editor\Connection.cpp" />
     <ClCompile Include="Editor\NodeEditor.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="NAND.cpp" />
     <ClCompile Include="Nodes\AND.cpp" />
     <ClCompile Include="Nodes\Gate.cpp" />
     <ClCompile Include="Nodes\Node.cpp" />
     <ClCompile Include="Nodes\NOT.cpp" />
     <ClCompile Include="Nodes\OR.cpp" />
     <ClCompile Include="Nodes\Source.cpp" />
+    <ClCompile Include="NOR.cpp" />
     <ClCompile Include="pch.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -188,12 +190,14 @@
     <ClInclude Include="..\libs\imnodes\ImNodesEz.h" />
     <ClInclude Include="Editor\Connection.hpp" />
     <ClInclude Include="Editor\NodeEditor.hpp" />
+    <ClInclude Include="NAND.h" />
     <ClInclude Include="Nodes\AND.hpp" />
     <ClInclude Include="Nodes\Gate.hpp" />
     <ClInclude Include="Nodes\Node.hpp" />
     <ClInclude Include="Nodes\NOT.hpp" />
     <ClInclude Include="Nodes\OR.hpp" />
     <ClInclude Include="Nodes\Source.hpp" />
+    <ClInclude Include="NOR.h" />
     <ClInclude Include="pch.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

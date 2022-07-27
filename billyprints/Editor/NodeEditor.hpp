@@ -5,11 +5,12 @@
 #include "Source.hpp"
 #include "AND.hpp"
 #include "OR.hpp"
+#include "NOT.hpp"
 #include "Connection.hpp"
 
 class NodeEditor {
     std::vector<Node*> nodes;
-    std::vector<Node*(*)()> available_nodes {
+    std::vector<Node*(*)()> availableNodes {
         []() -> Node* {
             return new Source();
         },
@@ -18,6 +19,20 @@ class NodeEditor {
         },
         []() -> Node* {
             return new OR();
+        },
+        []() -> Node* {
+            return new NOT();
+        }
+    };
+    std::vector<Node* (*)()> available_gates{
+        []() -> Node* {
+            return new AND();
+        },
+        []() -> Node* {
+            return new OR();
+        },
+        []() -> Node* {
+            return new NOT();
         }
     };
 

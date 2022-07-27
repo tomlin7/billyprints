@@ -65,7 +65,7 @@ inline void NodeEditor::RenderNodes() {
 inline void NodeEditor::RenderContextMenu() {
     if (ImGui::BeginPopup("NodesContextMenu"))
     {
-        for (const auto& desc : available_nodes)
+        for (const auto& desc : availableNodes)
         {
             auto item = desc();
             if (ImGui::MenuItem(item->title))

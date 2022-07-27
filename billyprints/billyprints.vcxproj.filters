@@ -51,6 +51,12 @@
     <ClCompile Include="Nodes\Source.cpp">
       <Filter>Nodes\Special</Filter>
     </ClCompile>
+    <ClCompile Include="NOR.cpp">
+      <Filter>Nodes\Gates</Filter>
+    </ClCompile>
+    <ClCompile Include="NAND.cpp">
+      <Filter>Nodes\Gates</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.hpp" />
@@ -110,6 +116,12 @@
     </ClInclude>
     <ClInclude Include="Nodes\Source.hpp">
       <Filter>Nodes\Special</Filter>
+    </ClInclude>
+    <ClInclude Include="NOR.h">
+      <Filter>Nodes\Gates</Filter>
+    </ClInclude>
+    <ClInclude Include="NAND.h">
+      <Filter>Nodes\Gates</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
