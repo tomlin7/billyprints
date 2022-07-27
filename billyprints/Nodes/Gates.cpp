@@ -16,6 +16,10 @@ namespace Billyprints {
         },
         []() -> Gate* {
             return new NOR();
+        },[]() -> Gate* {
+            return new XOR();
+        },[]() -> Gate* {
+            return new XNOR();
         },
     };
 }
