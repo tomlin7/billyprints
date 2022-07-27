@@ -190,14 +190,16 @@
     <ClInclude Include="..\libs\imnodes\ImNodesEz.h" />
     <ClInclude Include="Editor\Connection.hpp" />
     <ClInclude Include="Editor\NodeEditor.hpp" />
-    <ClInclude Include="NAND.h" />
+    <ClInclude Include="Gates.hpp" />
+    <ClInclude Include="NAND.hpp" />
+    <ClInclude Include="Nodes.hpp" />
     <ClInclude Include="Nodes\AND.hpp" />
     <ClInclude Include="Nodes\Gate.hpp" />
     <ClInclude Include="Nodes\Node.hpp" />
     <ClInclude Include="Nodes\NOT.hpp" />
     <ClInclude Include="Nodes\OR.hpp" />
     <ClInclude Include="Nodes\Source.hpp" />
-    <ClInclude Include="NOR.h" />
+    <ClInclude Include="NOR.hpp" />
     <ClInclude Include="pch.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

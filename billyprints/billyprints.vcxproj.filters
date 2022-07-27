@@ -117,11 +117,17 @@
     <ClInclude Include="Nodes\Source.hpp">
       <Filter>Nodes\Special</Filter>
     </ClInclude>
-    <ClInclude Include="NOR.h">
+    <ClInclude Include="NOR.hpp">
       <Filter>Nodes\Gates</Filter>
     </ClInclude>
-    <ClInclude Include="NAND.h">
+    <ClInclude Include="NAND.hpp">
       <Filter>Nodes\Gates</Filter>
+    </ClInclude>
+    <ClInclude Include="Gates.hpp">
+      <Filter>Nodes\Gates</Filter>
+    </ClInclude>
+    <ClInclude Include="Nodes.hpp">
+      <Filter>Nodes</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

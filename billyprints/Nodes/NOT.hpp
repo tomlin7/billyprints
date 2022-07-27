@@ -2,9 +2,11 @@
 
 #include "Gate.hpp"
 
-class NOT : public Gate
-{
-public:
-	NOT();
-	bool Evaluate() override;
-};
+namespace Billyprints {
+	class NOT : public Gate
+	{
+	public:
+		NOT();
+		bool Evaluate() override;
+	};
+}

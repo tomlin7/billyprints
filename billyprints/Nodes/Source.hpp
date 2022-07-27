@@ -2,9 +2,11 @@
 
 #include "Node.hpp"
 
-class Source : public Node
-{
-public:
-	Source();
-	bool Evaluate() override;
-};
+namespace Billyprints {
+	class Source : public Node
+	{
+	public:
+		Source();
+		bool Evaluate() override;
+	};
+}

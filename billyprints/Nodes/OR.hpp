@@ -2,10 +2,11 @@
 
 #include "Gate.hpp"
 
-class OR : public Gate
-{
-public:
-	OR();
-	bool Evaluate() override;
-};
-
+namespace Billyprints {
+	class OR : public Gate
+	{
+	public:
+		OR();
+		bool Evaluate() override;
+	};
+}
