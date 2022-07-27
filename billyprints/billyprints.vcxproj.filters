@@ -27,35 +27,35 @@
       <Filter>Include\imgui\imnodes</Filter>
     </ClCompile>
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="Nodes\Gate.cpp">
-      <Filter>Nodes</Filter>
-    </ClCompile>
-    <ClCompile Include="Nodes\Node.cpp">
-      <Filter>Nodes</Filter>
-    </ClCompile>
     <ClCompile Include="Editor\Connection.cpp">
       <Filter>Editor</Filter>
     </ClCompile>
     <ClCompile Include="Editor\NodeEditor.cpp">
       <Filter>Editor</Filter>
     </ClCompile>
-    <ClCompile Include="Nodes\AND.cpp">
+    <ClCompile Include="Nodes\Gates\AND.cpp">
       <Filter>Nodes\Gates</Filter>
     </ClCompile>
-    <ClCompile Include="Nodes\NOT.cpp">
+    <ClCompile Include="Nodes\Gates\Gate.cpp">
       <Filter>Nodes\Gates</Filter>
     </ClCompile>
-    <ClCompile Include="Nodes\OR.cpp">
+    <ClCompile Include="Nodes\Gates\NAND.cpp">
       <Filter>Nodes\Gates</Filter>
     </ClCompile>
-    <ClCompile Include="Nodes\Source.cpp">
+    <ClCompile Include="Nodes\Gates\NOR.cpp">
+      <Filter>Nodes\Gates</Filter>
+    </ClCompile>
+    <ClCompile Include="Nodes\Gates\NOT.cpp">
+      <Filter>Nodes\Gates</Filter>
+    </ClCompile>
+    <ClCompile Include="Nodes\Gates\OR.cpp">
+      <Filter>Nodes\Gates</Filter>
+    </ClCompile>
+    <ClCompile Include="Nodes\Node.cpp">
+      <Filter>Nodes</Filter>
+    </ClCompile>
+    <ClCompile Include="Nodes\Special\Source.cpp">
       <Filter>Nodes\Special</Filter>
-    </ClCompile>
-    <ClCompile Include="NOR.cpp">
-      <Filter>Nodes\Gates</Filter>
-    </ClCompile>
-    <ClCompile Include="NAND.cpp">
-      <Filter>Nodes\Gates</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -93,41 +93,41 @@
     <ClInclude Include="..\libs\imgui\imstb_truetype.h">
       <Filter>Include\imgui</Filter>
     </ClInclude>
-    <ClInclude Include="Nodes\Gate.hpp">
-      <Filter>Nodes</Filter>
-    </ClInclude>
-    <ClInclude Include="Nodes\Node.hpp">
-      <Filter>Nodes</Filter>
-    </ClInclude>
     <ClInclude Include="Editor\Connection.hpp">
       <Filter>Editor</Filter>
     </ClInclude>
     <ClInclude Include="Editor\NodeEditor.hpp">
       <Filter>Editor</Filter>
     </ClInclude>
-    <ClInclude Include="Nodes\AND.hpp">
-      <Filter>Nodes\Gates</Filter>
-    </ClInclude>
-    <ClInclude Include="Nodes\NOT.hpp">
-      <Filter>Nodes\Gates</Filter>
-    </ClInclude>
-    <ClInclude Include="Nodes\OR.hpp">
-      <Filter>Nodes\Gates</Filter>
-    </ClInclude>
-    <ClInclude Include="Nodes\Source.hpp">
-      <Filter>Nodes\Special</Filter>
-    </ClInclude>
-    <ClInclude Include="NOR.hpp">
-      <Filter>Nodes\Gates</Filter>
-    </ClInclude>
-    <ClInclude Include="NAND.hpp">
-      <Filter>Nodes\Gates</Filter>
-    </ClInclude>
-    <ClInclude Include="Gates.hpp">
-      <Filter>Nodes\Gates</Filter>
-    </ClInclude>
-    <ClInclude Include="Nodes.hpp">
+    <ClInclude Include="Nodes\Gates.hpp">
       <Filter>Nodes</Filter>
+    </ClInclude>
+    <ClInclude Include="Nodes\Gates\AND.hpp">
+      <Filter>Nodes\Gates</Filter>
+    </ClInclude>
+    <ClInclude Include="Nodes\Gates\Gate.hpp">
+      <Filter>Nodes\Gates</Filter>
+    </ClInclude>
+    <ClInclude Include="Nodes\Gates\NAND.hpp">
+      <Filter>Nodes\Gates</Filter>
+    </ClInclude>
+    <ClInclude Include="Nodes\Gates\NOR.hpp">
+      <Filter>Nodes\Gates</Filter>
+    </ClInclude>
+    <ClInclude Include="Nodes\Gates\NOT.hpp">
+      <Filter>Nodes\Gates</Filter>
+    </ClInclude>
+    <ClInclude Include="Nodes\Gates\OR.hpp">
+      <Filter>Nodes\Gates</Filter>
+    </ClInclude>
+    <ClInclude Include="Nodes\Node.hpp">
+      <Filter>Nodes</Filter>
+    </ClInclude>
+    <ClInclude Include="Nodes\Nodes.hpp">
+      <Filter>Nodes</Filter>
+    </ClInclude>
+    <ClInclude Include="Nodes\Special\Source.hpp">
+      <Filter>Nodes\Special</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
