@@ -64,13 +64,10 @@
       <Filter>Nodes</Filter>
     </ClCompile>
     <ClCompile Include="Billyprints.cpp" />
-    <ClCompile Include="imgui_demo.cpp">
-      <Filter>Include\imgui</Filter>
-    </ClCompile>
-    <ClCompile Include="XOR.cpp">
+    <ClCompile Include="Nodes\Gates\XNOR.cpp">
       <Filter>Nodes\Gates</Filter>
     </ClCompile>
-    <ClCompile Include="XNOR.cpp">
+    <ClCompile Include="Nodes\Gates\XOR.cpp">
       <Filter>Nodes\Gates</Filter>
     </ClCompile>
   </ItemGroup>
@@ -146,10 +143,10 @@
       <Filter>Nodes\Special</Filter>
     </ClInclude>
     <ClInclude Include="Billyprints.hpp" />
-    <ClInclude Include="XOR.hpp">
+    <ClInclude Include="Nodes\Gates\XNOR.hpp">
       <Filter>Nodes\Gates</Filter>
     </ClInclude>
-    <ClInclude Include="XNOR.hpp">
+    <ClInclude Include="Nodes\Gates\XOR.hpp">
       <Filter>Nodes\Gates</Filter>
     </ClInclude>
   </ItemGroup>
