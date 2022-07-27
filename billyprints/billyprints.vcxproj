@@ -104,7 +104,7 @@
     <ClCompile>
       <WarningLevel>Level4</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>.;Nodes;Editor;..\libs\imnodes;..\libs\imgui;..\libs\backends;..\libs\glfw\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.;Nodes\Special;Nodes\Gates;Nodes;Editor;..\libs\imnodes;..\libs\imgui;..\libs\backends;..\libs\glfw\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -163,9 +163,11 @@
     <ClCompile Include="..\libs\imgui\imgui_widgets.cpp" />
     <ClCompile Include="..\libs\imnodes\ImNodes.cpp" />
     <ClCompile Include="..\libs\imnodes\ImNodesEz.cpp" />
+    <ClCompile Include="Billyprints.cpp" />
     <ClCompile Include="Editor\Connection.cpp" />
     <ClCompile Include="Editor\NodeEditor.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="Nodes\Gates.cpp" />
     <ClCompile Include="Nodes\Gates\AND.cpp" />
     <ClCompile Include="Nodes\Gates\Gate.cpp" />
     <ClCompile Include="Nodes\Gates\NAND.cpp" />
@@ -173,6 +175,7 @@
     <ClCompile Include="Nodes\Gates\NOT.cpp" />
     <ClCompile Include="Nodes\Gates\OR.cpp" />
     <ClCompile Include="Nodes\Node.cpp" />
+    <ClCompile Include="Nodes\Nodes.cpp" />
     <ClCompile Include="Nodes\Special\Source.cpp" />
     <ClCompile Include="pch.cpp" />
   </ItemGroup>
@@ -188,6 +191,7 @@
     <ClInclude Include="..\libs\imgui\imstb_truetype.h" />
     <ClInclude Include="..\libs\imnodes\ImNodes.h" />
     <ClInclude Include="..\libs\imnodes\ImNodesEz.h" />
+    <ClInclude Include="Billyprints.hpp" />
     <ClInclude Include="Editor\Connection.hpp" />
     <ClInclude Include="Editor\NodeEditor.hpp" />
     <ClInclude Include="Nodes\Gates.hpp" />

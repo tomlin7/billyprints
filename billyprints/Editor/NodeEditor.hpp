@@ -1,7 +1,5 @@
 #pragma once
 
-#include "Node.hpp"
-#include "Gate.hpp"
 #include "Gates.hpp"
 #include "Nodes.hpp"
 #include "Connection.hpp"
