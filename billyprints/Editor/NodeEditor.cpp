@@ -1,4 +1,5 @@
 #include "NodeEditor.hpp"
+#include <iostream>
 
 namespace Billyprints {
     inline void NodeEditor::RenderNode(Node* node) {
@@ -64,8 +65,7 @@ namespace Billyprints {
     }
 
     inline void NodeEditor::RenderContextMenu() {
-        if (ImGui::BeginPopup("NodesContextMenu"))
-        {
+        if (ImGui::BeginPopup("NodesContextMenu")) {
             for (const auto& desc : availableNodes)
             {
                 auto item = desc();
@@ -75,13 +75,23 @@ namespace Billyprints {
                     ImNodes::AutoPositionNode(nodes.back());
                 }
             }
+            ImGui::Separator();
+            if (ImGui::BeginMenu("Gates")) {
+                for (const auto& desc : availableGates)
+                {
+                    auto item = desc();
+                    if (ImGui::MenuItem(item->title))
+                    {
+                        nodes.push_back(item);
+                        ImNodes::AutoPositionNode(nodes.back());
+                    }
+                }
+                ImGui::EndMenu();
+            }
 
             ImGui::Separator();
             if (ImGui::MenuItem("Reset Zoom"))
                 ImNodes::GetCurrentCanvas()->Zoom = 1;
-
-            if (ImGui::IsAnyMouseDown() && !ImGui::IsWindowHovered())
-                ImGui::CloseCurrentPopup();
             ImGui::EndPopup();
         }
     }
@@ -93,8 +103,21 @@ namespace Billyprints {
         ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize
             | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse;
 
-        if (ImGui::Begin("ImNodes", NULL, window_flags))
+        
+        if (ImGui::Begin("Billyprints", NULL, window_flags))
         {
+            if (ImGui::BeginMainMenuBar())
+            {
+                if (ImGui::BeginMenu("File"))
+                {
+                    if (ImGui::MenuItem("Open..", "Ctrl+O")) { }
+                    if (ImGui::MenuItem("Save", "Ctrl+S")) { }
+                    if (ImGui::MenuItem("Close", "Ctrl+W")) { }
+                    ImGui::EndMenu();
+                }
+                ImGui::EndMainMenuBar();
+            }
+
             ImNodes::Ez::BeginCanvas();
 
             RenderNodes();
