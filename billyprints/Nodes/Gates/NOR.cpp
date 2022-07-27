@@ -4,20 +4,16 @@ namespace Billyprints {
 	NOR::NOR() : Gate("NOR", { {"a"}, {"b"} }, { {"out"} }) { }
 
 	bool NOR::Evaluate() {
-		//foreach(var b in x)
-		//	if (b) return true;
+		//bool current = false;
+		//foreach(bool b in input) current |= b;
+		//return !current;
+		
+		bool current = false;
+		for (const auto& cn : connections)
+			if (cn.inputNode == this)
+				current |= ((Node*)cn.outputNode)->value;
 
-		//return false;
-
-		// ANY
-		for (const auto& cn : connections) {
-			if (cn.inputNode == this && ((Node*)cn.outputNode)->value) {
-				value = false;
-				return value;
-			}
-		}
-
-		value = true;
+		value = !current;
 		return value;
 	}
 }

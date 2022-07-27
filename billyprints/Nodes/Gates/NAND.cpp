@@ -4,28 +4,16 @@ namespace Billyprints {
 	NAND::NAND() : Gate("NAND", { {"a"}, {"b"} }, { {"out"} }) { }
 
 	bool NAND::Evaluate() {
-		//if (empty) return;
-		//foreach(var b in x)
-		//	if (!b) return true;
+		//bool current = true;
+		//foreach(bool b in input) current &= !b;
+		//return !current;
 
-		//return false;
-
-		int len = 0;
+		bool current = true;
 		for (const auto& cn : connections)
 			if (cn.inputNode == this)
-				len++;
+				current &= ((Node*)cn.outputNode)->value;
 
-		if (len < inputSlotCount) return false;
-
-		// ALL
-		for (const auto& cn : connections) {
-			if (cn.inputNode == this && !((Node*)cn.outputNode)->value) {
-				value = true;
-				return value;
-			}
-		}
-
-		value = false;
+		value = !current;
 		return value;
 	}
 }

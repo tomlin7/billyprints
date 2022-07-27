@@ -4,20 +4,16 @@ namespace Billyprints {
 	OR::OR() : Gate("OR", { {"a"}, {"b"} }, { {"out"} }) { }
 
 	bool OR::Evaluate() {
-		//foreach(var b in x)
-		//	if (b) return true;
+		//bool current = false;
+		//foreach(bool b in input) current |= b;
+		//return current;
 
-		//return false;
-
-		// ANY
-		for (const auto& cn : connections) {
-			if (cn.inputNode == this && ((Node*)cn.outputNode)->value) {
-				value = true;
-				return value;
-			}
-		}
-
-		value = false;
+		bool current = false;
+		for (const auto& cn : connections)
+			if (cn.inputNode == this)
+				current |= ((Node*)cn.outputNode)->value;
+		
+		value = current;
 		return value;
 	}
 }

@@ -4,11 +4,9 @@ namespace Billyprints {
 	AND::AND() : Gate("AND", { {"a"}, {"b"} }, { {"out"} }) { }
 
 	bool AND::Evaluate() {
-		//if (empty) return;
-		//foreach(var b in x)
-		//	if (!b) return false;
-
-		//return true;
+		//bool current = true;
+		//foreach(bool b in input) current &= !b;
+		//return current;
 
 		int len = 0;
 		for (const auto& cn : connections)
@@ -17,15 +15,12 @@ namespace Billyprints {
 
 		if (len < inputSlotCount) return false;
 
-		// ALL
-		for (const auto& cn : connections) {
-			if (cn.inputNode == this && !((Node*)cn.outputNode)->value) {
-				value = false;
-				return value;
-			}
-		}
+		bool current = true;
+		for (const auto& cn : connections)
+			if (cn.inputNode == this)
+				current &= ((Node*)cn.outputNode)->value;
 
-		value = true;
+		value = current;
 		return value;
 	}
 }

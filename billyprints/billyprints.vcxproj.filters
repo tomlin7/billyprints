@@ -64,6 +64,15 @@
       <Filter>Nodes</Filter>
     </ClCompile>
     <ClCompile Include="Billyprints.cpp" />
+    <ClCompile Include="imgui_demo.cpp">
+      <Filter>Include\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="XOR.cpp">
+      <Filter>Nodes\Gates</Filter>
+    </ClCompile>
+    <ClCompile Include="XNOR.cpp">
+      <Filter>Nodes\Gates</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.hpp" />
@@ -137,6 +146,12 @@
       <Filter>Nodes\Special</Filter>
     </ClInclude>
     <ClInclude Include="Billyprints.hpp" />
+    <ClInclude Include="XOR.hpp">
+      <Filter>Nodes\Gates</Filter>
+    </ClInclude>
+    <ClInclude Include="XNOR.hpp">
+      <Filter>Nodes\Gates</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Include">
