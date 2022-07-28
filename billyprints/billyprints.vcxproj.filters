@@ -70,6 +70,9 @@
     <ClCompile Include="Nodes\Gates\XOR.cpp">
       <Filter>Nodes\Gates</Filter>
     </ClCompile>
+    <ClCompile Include="Nodes\Gates\Buffer.cpp">
+      <Filter>Nodes\Gates</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.hpp" />
@@ -147,6 +150,9 @@
       <Filter>Nodes\Gates</Filter>
     </ClInclude>
     <ClInclude Include="Nodes\Gates\XOR.hpp">
+      <Filter>Nodes\Gates</Filter>
+    </ClInclude>
+    <ClInclude Include="Nodes\Gates\Buffer.hpp">
       <Filter>Nodes\Gates</Filter>
     </ClInclude>
   </ItemGroup>

@@ -169,6 +169,7 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Nodes\Gates.cpp" />
     <ClCompile Include="Nodes\Gates\AND.cpp" />
+    <ClCompile Include="Nodes\Gates\Buffer.cpp" />
     <ClCompile Include="Nodes\Gates\Gate.cpp" />
     <ClCompile Include="Nodes\Gates\NAND.cpp" />
     <ClCompile Include="Nodes\Gates\NOR.cpp" />
@@ -198,6 +199,7 @@
     <ClInclude Include="Editor\NodeEditor.hpp" />
     <ClInclude Include="Nodes\Gates.hpp" />
     <ClInclude Include="Nodes\Gates\AND.hpp" />
+    <ClInclude Include="Nodes\Gates\Buffer.hpp" />
     <ClInclude Include="Nodes\Gates\Gate.hpp" />
     <ClInclude Include="Nodes\Gates\NAND.hpp" />
     <ClInclude Include="Nodes\Gates\NOR.hpp" />

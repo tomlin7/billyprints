@@ -12,13 +12,18 @@ namespace Billyprints {
             return new NOT();
         },
         []() -> Gate* {
+            return new Buffer();
+        },
+        []() -> Gate* {
             return new NAND();
         },
         []() -> Gate* {
             return new NOR();
-        },[]() -> Gate* {
+        },
+        []() -> Gate* {
             return new XOR();
-        },[]() -> Gate* {
+        },
+        []() -> Gate* {
             return new XNOR();
         },
     };

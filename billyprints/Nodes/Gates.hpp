@@ -5,6 +5,7 @@
 #include "AND.hpp"
 #include "OR.hpp"
 #include "NOT.hpp"
+#include "Buffer.hpp"
 #include "NAND.hpp"
 #include "NOR.hpp"
 #include "XOR.hpp"
