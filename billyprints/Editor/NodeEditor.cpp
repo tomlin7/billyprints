@@ -65,7 +65,7 @@ namespace Billyprints {
     }
 
     inline void NodeEditor::RenderContextMenu() {
-        if (ImGui::BeginPopup("NodesContextMenu")) {
+        if (ImGui::BeginPopupContextWindow("NodesContextMenu")) {
             for (const auto& desc : availableNodes)
             {
                 auto item = desc();
@@ -121,12 +121,6 @@ namespace Billyprints {
             ImNodes::Ez::BeginCanvas();
 
             RenderNodes();
-
-            if (ImGui::IsMouseReleased(1) && ImGui::IsWindowHovered() && !ImGui::IsMouseDragging(1))
-            {
-                ImGui::FocusWindow(ImGui::GetCurrentWindow());
-                ImGui::OpenPopup("NodesContextMenu");
-            }
 
             RenderContextMenu();
 
