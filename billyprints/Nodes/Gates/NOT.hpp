@@ -7,6 +7,8 @@ namespace Billyprints {
 	{
 	public:
 		NOT();
+		static bool NOT_F(const std::vector<bool>& input, const int&);
+
 		bool Evaluate() override;
 	};
 }

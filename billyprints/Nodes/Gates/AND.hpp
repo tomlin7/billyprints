@@ -7,6 +7,8 @@ namespace Billyprints {
 	{
 	public:
 		AND();
+		static bool AND_F(const std::vector<bool>& input, const int& pinCount);
+
 		bool Evaluate() override;
 	};
 }

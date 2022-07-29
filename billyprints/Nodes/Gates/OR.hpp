@@ -7,6 +7,8 @@ namespace Billyprints {
 	{
 	public:
 		OR();
+		static bool OR_F(const std::vector<bool>& input, const int&);
+
 		bool Evaluate() override;
 	};
 }

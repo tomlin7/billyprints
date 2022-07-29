@@ -7,6 +7,8 @@ namespace Billyprints {
 	{
 	public:
 		Buffer();
+		static bool Buffer_F(const std::vector<bool>& input, const int&);
+
 		bool Evaluate() override;
 	};
 }

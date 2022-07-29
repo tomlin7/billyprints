@@ -3,17 +3,21 @@
 namespace Billyprints {
 	OR::OR() : Gate("OR", { {"a"}, {"b"} }, { {"out"} }) { }
 
-	bool OR::Evaluate() {
-		//bool current = false;
-		//foreach(bool b in input) current |= b;
-		//return current;
-
+	bool OR::OR_F(const std::vector<bool>& input, const int&) {
 		bool current = false;
+		for (const bool& pin : input)
+			current |= pin;
+
+		return current;
+	}
+
+	bool OR::Evaluate() {
+		std::vector<bool> input;
 		for (const auto& cn : connections)
 			if (cn.inputNode == this)
-				current |= ((Node*)cn.outputNode)->value;
+				input.push_back(((Node*)cn.outputNode)->value);
 		
-		value = current;
+		value = OR_F(input, outputSlotCount);
 		return value;
 	}
 }

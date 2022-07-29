@@ -3,17 +3,21 @@
 namespace Billyprints {
 	XOR::XOR() : Gate("XOR", { {"a"}, {"b"} }, { {"out"} }) { }
 
-	bool XOR::Evaluate() {
-		//bool current = false;
-		//foreach(bool b in input) current ^= b;
-		//return current;
-
+	bool XOR::XOR_F(const std::vector<bool>& input, const int&) {
 		bool current = false;
+		for (const bool& pin : input)
+			current ^= pin;
+
+		return current;
+	}
+
+	bool XOR::Evaluate() {
+		std::vector<bool> input;
 		for (const auto& cn : connections)
 			if (cn.inputNode == this)
-				current ^= ((Node*)cn.outputNode)->value;
+				input.push_back(((Node*)cn.outputNode)->value);
 
-		value = current;
+		value = XOR_F(input, inputSlotCount);
 		return value;
 	}
 }

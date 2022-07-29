@@ -3,17 +3,17 @@
 namespace Billyprints {
 	NOR::NOR() : Gate("NOR", { {"a"}, {"b"} }, { {"out"} }) { }
 
+	bool NOR::NOR_F(const std::vector<bool>& input, const int& pinCount) {
+		return !OR::OR_F(input, pinCount);
+	}
+
 	bool NOR::Evaluate() {
-		//bool current = false;
-		//foreach(bool b in input) current |= b;
-		//return !current;
-		
-		bool current = false;
+		std::vector<bool> input;
 		for (const auto& cn : connections)
 			if (cn.inputNode == this)
-				current |= ((Node*)cn.outputNode)->value;
+				input.push_back(((Node*)cn.outputNode)->value);
 
-		value = !current;
+		value = NOR_F(input, inputSlotCount);
 		return value;
 	}
 }

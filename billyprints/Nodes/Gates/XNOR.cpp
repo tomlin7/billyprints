@@ -3,17 +3,17 @@
 namespace Billyprints {
 	XNOR::XNOR() : Gate("XNOR", { {"a"}, {"b"} }, { {"out"} }) { }
 
-	bool XNOR::Evaluate() {
-		//bool current = false;
-		//foreach(bool b in input) current ^= b;
-		//return !current;
+	bool XNOR::XNOR_F(const std::vector<bool>& input, const int& pinCount) {
+		return !XOR::XOR_F(input, pinCount);
+	}
 
-		bool current = false;
+	bool XNOR::Evaluate() {
+		std::vector<bool> input;
 		for (const auto& cn : connections)
 			if (cn.inputNode == this)
-				current ^= ((Node*)cn.outputNode)->value;
+				input.push_back(((Node*)cn.outputNode)->value);
 
-		value = !current;
+		value = XNOR_F(input, inputSlotCount);
 		return value;
 	}
 }

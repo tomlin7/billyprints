@@ -18,6 +18,9 @@ namespace Billyprints {
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
 
+        // No decorations
+        glfwWindowHint(GLFW_DECORATED, GLFW_FALSE);
+
         // Create window with graphics context
         GLFWwindow* window = glfwCreateWindow(1280, 720, "Imgui setup", NULL, NULL);
         if (window == NULL)

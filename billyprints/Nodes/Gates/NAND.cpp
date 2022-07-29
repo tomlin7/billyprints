@@ -3,17 +3,18 @@
 namespace Billyprints {
 	NAND::NAND() : Gate("NAND", { {"a"}, {"b"} }, { {"out"} }) { }
 
-	bool NAND::Evaluate() {
-		//bool current = true;
-		//foreach(bool b in input) current &= !b;
-		//return !current;
+	bool NAND::NAND_F(const std::vector<bool>& input, const int& pinCount) {
+		if (input.empty()) return false;
+		return !AND::AND_F(input, pinCount);
+	}
 
-		bool current = true;
+	bool NAND::Evaluate() {
+		std::vector<bool> input;
 		for (const auto& cn : connections)
 			if (cn.inputNode == this)
-				current &= ((Node*)cn.outputNode)->value;
+				input.push_back(((Node*)cn.outputNode)->value);
 
-		value = !current;
+		value = NAND_F(input, inputSlotCount);
 		return value;
 	}
 }
