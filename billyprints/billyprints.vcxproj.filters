@@ -2,30 +2,6 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <ClCompile Include="pch.cpp" />
-    <ClCompile Include="..\libs\imgui\imgui_widgets.cpp">
-      <Filter>Include\imgui</Filter>
-    </ClCompile>
-    <ClCompile Include="..\libs\imgui\imgui_tables.cpp">
-      <Filter>Include\imgui</Filter>
-    </ClCompile>
-    <ClCompile Include="..\libs\imgui\imgui_draw.cpp">
-      <Filter>Include\imgui</Filter>
-    </ClCompile>
-    <ClCompile Include="..\libs\imgui\imgui.cpp">
-      <Filter>Include\imgui</Filter>
-    </ClCompile>
-    <ClCompile Include="..\libs\backends\imgui_impl_glfw.cpp">
-      <Filter>Include\Backend</Filter>
-    </ClCompile>
-    <ClCompile Include="..\libs\backends\imgui_impl_opengl3.cpp">
-      <Filter>Include\Backend</Filter>
-    </ClCompile>
-    <ClCompile Include="..\libs\imnodes\ImNodes.cpp">
-      <Filter>Include\imgui\imnodes</Filter>
-    </ClCompile>
-    <ClCompile Include="..\libs\imnodes\ImNodesEz.cpp">
-      <Filter>Include\imgui\imnodes</Filter>
-    </ClCompile>
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Editor\Connection.cpp">
       <Filter>Editor</Filter>
@@ -73,43 +49,36 @@
     <ClCompile Include="Nodes\Gates\Buffer.cpp">
       <Filter>Nodes\Gates</Filter>
     </ClCompile>
-    <ClCompile Include="Nodes\Special\PinOut.cpp" />
+    <ClCompile Include="..\libs\imgui\imgui.cpp">
+      <Filter>Include\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\libs\imgui\imgui_draw.cpp">
+      <Filter>Include\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\libs\imgui\imgui_tables.cpp">
+      <Filter>Include\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\libs\imgui\imgui_widgets.cpp">
+      <Filter>Include\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\libs\imnodes\ImNodes.cpp">
+      <Filter>Include\imgui\imnodes</Filter>
+    </ClCompile>
+    <ClCompile Include="..\libs\imnodes\ImNodesEz.cpp">
+      <Filter>Include\imgui\imnodes</Filter>
+    </ClCompile>
+    <ClCompile Include="..\libs\backends\imgui_impl_glfw.cpp">
+      <Filter>Include\Backend</Filter>
+    </ClCompile>
+    <ClCompile Include="..\libs\backends\imgui_impl_opengl3.cpp">
+      <Filter>Include\Backend</Filter>
+    </ClCompile>
+    <ClCompile Include="Nodes\Special\PinOut.cpp">
+      <Filter>Nodes\Special</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.hpp" />
-    <ClInclude Include="..\libs\imgui\imgui_internal.h">
-      <Filter>Include\imgui</Filter>
-    </ClInclude>
-    <ClInclude Include="..\libs\imgui\imgui.h">
-      <Filter>Include\imgui</Filter>
-    </ClInclude>
-    <ClInclude Include="..\libs\backends\imgui_impl_glfw.h">
-      <Filter>Include\Backend</Filter>
-    </ClInclude>
-    <ClInclude Include="..\libs\backends\imgui_impl_opengl3.h">
-      <Filter>Include\Backend</Filter>
-    </ClInclude>
-    <ClInclude Include="..\libs\backends\imgui_impl_opengl3_loader.h">
-      <Filter>Include\Backend</Filter>
-    </ClInclude>
-    <ClInclude Include="..\libs\imnodes\ImNodes.h">
-      <Filter>Include\imgui\imnodes</Filter>
-    </ClInclude>
-    <ClInclude Include="..\libs\imnodes\ImNodesEz.h">
-      <Filter>Include\imgui\imnodes</Filter>
-    </ClInclude>
-    <ClInclude Include="..\libs\imgui\imconfig.h">
-      <Filter>Include\imgui</Filter>
-    </ClInclude>
-    <ClInclude Include="..\libs\imgui\imstb_rectpack.h">
-      <Filter>Include\imgui</Filter>
-    </ClInclude>
-    <ClInclude Include="..\libs\imgui\imstb_textedit.h">
-      <Filter>Include\imgui</Filter>
-    </ClInclude>
-    <ClInclude Include="..\libs\imgui\imstb_truetype.h">
-      <Filter>Include\imgui</Filter>
-    </ClInclude>
     <ClInclude Include="Editor\Connection.hpp">
       <Filter>Editor</Filter>
     </ClInclude>
@@ -156,7 +125,42 @@
     <ClInclude Include="Nodes\Gates\Buffer.hpp">
       <Filter>Nodes\Gates</Filter>
     </ClInclude>
-    <ClInclude Include="Nodes\Special\PinOut.hpp" />
+    <ClInclude Include="..\libs\imgui\imconfig.hpp">
+      <Filter>Include\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\libs\imgui\imgui.hpp">
+      <Filter>Include\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\libs\imgui\imgui_internal.hpp">
+      <Filter>Include\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\libs\imgui\imstb_rectpack.hpp">
+      <Filter>Include\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\libs\imgui\imstb_textedit.hpp">
+      <Filter>Include\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\libs\imgui\imstb_truetype.hpp">
+      <Filter>Include\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\libs\imnodes\ImNodes.hpp">
+      <Filter>Include\imgui\imnodes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\libs\imnodes\ImNodesEz.hpp">
+      <Filter>Include\imgui\imnodes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\libs\backends\imgui_impl_glfw.hpp">
+      <Filter>Include\Backend</Filter>
+    </ClInclude>
+    <ClInclude Include="..\libs\backends\imgui_impl_opengl3.hpp">
+      <Filter>Include\Backend</Filter>
+    </ClInclude>
+    <ClInclude Include="..\libs\backends\imgui_impl_opengl3_loader.hpp">
+      <Filter>Include\Backend</Filter>
+    </ClInclude>
+    <ClInclude Include="Nodes\Special\PinOut.hpp">
+      <Filter>Nodes\Special</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Include">

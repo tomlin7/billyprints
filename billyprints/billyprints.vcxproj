@@ -185,17 +185,17 @@
     <ClCompile Include="Nodes\Special\PinOut.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\libs\backends\imgui_impl_glfw.h" />
-    <ClInclude Include="..\libs\backends\imgui_impl_opengl3.h" />
-    <ClInclude Include="..\libs\backends\imgui_impl_opengl3_loader.h" />
-    <ClInclude Include="..\libs\imgui\imconfig.h" />
-    <ClInclude Include="..\libs\imgui\imgui.h" />
-    <ClInclude Include="..\libs\imgui\imgui_internal.h" />
-    <ClInclude Include="..\libs\imgui\imstb_rectpack.h" />
-    <ClInclude Include="..\libs\imgui\imstb_textedit.h" />
-    <ClInclude Include="..\libs\imgui\imstb_truetype.h" />
-    <ClInclude Include="..\libs\imnodes\ImNodes.h" />
-    <ClInclude Include="..\libs\imnodes\ImNodesEz.h" />
+    <ClInclude Include="..\libs\backends\imgui_impl_glfw.hpp" />
+    <ClInclude Include="..\libs\backends\imgui_impl_opengl3.hpp" />
+    <ClInclude Include="..\libs\backends\imgui_impl_opengl3_loader.hpp" />
+    <ClInclude Include="..\libs\imgui\imconfig.hpp" />
+    <ClInclude Include="..\libs\imgui\imgui.hpp" />
+    <ClInclude Include="..\libs\imgui\imgui_internal.hpp" />
+    <ClInclude Include="..\libs\imgui\imstb_rectpack.hpp" />
+    <ClInclude Include="..\libs\imgui\imstb_textedit.hpp" />
+    <ClInclude Include="..\libs\imgui\imstb_truetype.hpp" />
+    <ClInclude Include="..\libs\imnodes\ImNodes.hpp" />
+    <ClInclude Include="..\libs\imnodes\ImNodesEz.hpp" />
     <ClInclude Include="Billyprints.hpp" />
     <ClInclude Include="Editor\Connection.hpp" />
     <ClInclude Include="Editor\NodeEditor.hpp" />

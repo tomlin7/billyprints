@@ -1,12 +1,12 @@
 #pragma once
 
-#include "imgui.h"
-#include "imgui_internal.h"
-#include "imgui_impl_glfw.h"
-#include "imgui_impl_opengl3.h"
+#include "imgui.hpp"
+#include "imgui_internal.hpp"
+#include "imgui_impl_glfw.hpp"
+#include "imgui_impl_opengl3.hpp"
 
-#include "ImNodes.h"
-#include "ImNodesEz.h"
+#include "ImNodes.hpp"
+#include "ImNodesEz.hpp"
 
 #include <vector>
 #include <map>

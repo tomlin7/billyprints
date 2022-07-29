@@ -2,7 +2,7 @@
 #include <iostream>
 
 namespace Billyprints {
-	AND::AND() : Gate("AND", { {"a"}, {"b"} }, { {"out"} }) { }
+	AND::AND() : Gate("AND", { {"a"}, {"a"} }, { {"out"} }) { }
 
 	bool AND::AND_F(const std::vector<bool>& input, const int& pinCount) {
 		if (input.size() < pinCount) return false;
