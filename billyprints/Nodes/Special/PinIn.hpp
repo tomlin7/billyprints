@@ -3,10 +3,10 @@
 #include "Node.hpp"
 
 namespace Billyprints {
-	class Source : public Node
+	class PinIn : public Node
 	{
 	public:
-		Source();
+		PinIn();
 		bool Evaluate() override;
 	};
 }

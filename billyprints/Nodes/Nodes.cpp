@@ -3,7 +3,10 @@
 namespace Billyprints {
     std::vector<Node* (*)()> availableNodes {
         []() -> Node* {
-            return new Source();
+            return new PinIn();
+        },
+        []() -> Node* {
+            return new PinOut();
         },
             []() -> Node* {
             return new AND();

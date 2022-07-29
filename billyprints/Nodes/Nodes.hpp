@@ -2,7 +2,8 @@
 
 #include "Node.hpp"
 
-#include "Source.hpp"
+#include "PinIn.hpp"
+#include "PinOut.hpp"
 #include "AND.hpp"
 #include "OR.hpp"
 #include "NOT.hpp"

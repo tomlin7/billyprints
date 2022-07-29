@@ -54,7 +54,7 @@
     <ClCompile Include="Nodes\Node.cpp">
       <Filter>Nodes</Filter>
     </ClCompile>
-    <ClCompile Include="Nodes\Special\Source.cpp">
+    <ClCompile Include="Nodes\Special\PinIn.cpp">
       <Filter>Nodes\Special</Filter>
     </ClCompile>
     <ClCompile Include="Nodes\Gates.cpp">
@@ -73,6 +73,7 @@
     <ClCompile Include="Nodes\Gates\Buffer.cpp">
       <Filter>Nodes\Gates</Filter>
     </ClCompile>
+    <ClCompile Include="Nodes\Special\PinOut.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.hpp" />
@@ -142,7 +143,7 @@
     <ClInclude Include="Nodes\Nodes.hpp">
       <Filter>Nodes</Filter>
     </ClInclude>
-    <ClInclude Include="Nodes\Special\Source.hpp">
+    <ClInclude Include="Nodes\Special\PinIn.hpp">
       <Filter>Nodes\Special</Filter>
     </ClInclude>
     <ClInclude Include="Billyprints.hpp" />
@@ -155,6 +156,7 @@
     <ClInclude Include="Nodes\Gates\Buffer.hpp">
       <Filter>Nodes\Gates</Filter>
     </ClInclude>
+    <ClInclude Include="Nodes\Special\PinOut.hpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Include">

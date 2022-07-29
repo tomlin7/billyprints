@@ -179,8 +179,9 @@
     <ClCompile Include="Nodes\Gates\XOR.cpp" />
     <ClCompile Include="Nodes\Node.cpp" />
     <ClCompile Include="Nodes\Nodes.cpp" />
-    <ClCompile Include="Nodes\Special\Source.cpp" />
+    <ClCompile Include="Nodes\Special\PinIn.cpp" />
     <ClCompile Include="pch.cpp" />
+    <ClCompile Include="Nodes\Special\PinOut.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\libs\backends\imgui_impl_glfw.h" />
@@ -209,8 +210,9 @@
     <ClInclude Include="Nodes\Gates\XOR.hpp" />
     <ClInclude Include="Nodes\Node.hpp" />
     <ClInclude Include="Nodes\Nodes.hpp" />
-    <ClInclude Include="Nodes\Special\Source.hpp" />
+    <ClInclude Include="Nodes\Special\PinIn.hpp" />
     <ClInclude Include="pch.hpp" />
+    <ClInclude Include="Nodes\Special\PinOut.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
