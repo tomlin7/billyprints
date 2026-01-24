@@ -9,16 +9,17 @@
 
 namespace Billyprints {
 inline void NodeEditor::RenderNode(Node *node) {
-  ImU32 titleColor = IM_COL32(50, 50, 50, 255);
+  // Glassy Nodes (Semi-transparent)
+  ImU32 titleColor = IM_COL32(30, 30, 35, 180);
   std::string t = node->title;
   if (t == "AND")
-    titleColor = IM_COL32(0, 100, 200, 255);
+    titleColor = IM_COL32(0, 50, 100, 180); // Dark Blue Glass
   else if (t == "NOT")
-    titleColor = IM_COL32(200, 50, 50, 255);
+    titleColor = IM_COL32(100, 25, 25, 180); // Dark Red Glass
   else if (t == "NAND")
-    titleColor = IM_COL32(120, 0, 220, 255);
-  else if (t == "Input" || t == "PinIn")
-    titleColor = IM_COL32(0, 150, 0, 255);
+    titleColor = IM_COL32(60, 0, 110, 180); // Dark Purple Glass
+  else if (t == "Pin In" || t == "PinIn")
+    titleColor = IM_COL32(0, 80, 0, 180); // Dark Green Glass
 
   auto *canvas = ImNodes::GetCurrentCanvas();
   ImColor originalTitleColor = canvas->Colors[ImNodes::ColNodeBg];
@@ -26,9 +27,13 @@ inline void NodeEditor::RenderNode(Node *node) {
 
   canvas->Colors[ImNodes::ColNodeBg] = titleColor;
   canvas->Colors[ImNodes::ColNodeActiveBg] =
-      titleColor; // Or slightly brighter? Using same for now
+      IM_COL32((titleColor >> 0) & 0xFF, (titleColor >> 8) & 0xFF,
+               (titleColor >> 16) & 0xFF,
+               230); // Brighter alpha when selected
 
   if (ImNodes::Ez::BeginNode(node, node->title, &node->pos, &node->selected)) {
+    // ... input slots ...
+
     ImNodes::Ez::InputSlots(node->inputSlots.data(),
                             static_cast<int>(node->inputSlots.size()));
 
@@ -69,8 +74,9 @@ inline void NodeEditor::RenderNode(Node *node) {
         continue;
 
       bool signal = ((Node *)connection.outputNode)->Evaluate();
-      ImColor activeColor = IM_COL32(255, 50, 50, 255);
-      ImColor inactiveColor = IM_COL32(100, 100, 100, 255);
+      // Neon Styles
+      ImColor activeColor = IM_COL32(255, 160, 20, 255);  // Neon Orange
+      ImColor inactiveColor = IM_COL32(80, 90, 100, 255); // Dim Blue-Gray
 
       auto *canvas = ImNodes::GetCurrentCanvas();
       ImColor originalConnectionColor = canvas->Colors[ImNodes::ColConnection];
@@ -246,15 +252,77 @@ void NodeEditor::Redraw() {
   }
 
   ImNodes::Ez::BeginCanvas();
+
+  // --- Cyberpunk Visuals Start ---
+
+  // 1. Hex Grid Background
+  auto *canvas = ImNodes::GetCurrentCanvas();
+  ImDrawList *drawList = ImGui::GetWindowDrawList();
+  ImVec2 canvasPos = ImGui::GetCursorScreenPos();
+  ImVec2 canvasSize = ImGui::GetContentRegionAvail();
+
+  // Draw deep dark background
+  drawList->AddRectFilled(
+      canvasPos, ImVec2(canvasPos.x + canvasSize.x, canvasPos.y + canvasSize.y),
+      IM_COL32(20, 20, 25, 255));
+
+  // Grid Logic
+  const float HEX_SIZE = 50.0f * canvas->Zoom;
+  const float SQRT3 = 1.7320508f;
+  const float HEX_W = HEX_SIZE * SQRT3;
+  const float HEX_H = HEX_SIZE * 2.0f;
+  const float HEX_X_SPACING = HEX_W;
+  const float HEX_Y_SPACING = HEX_H * 0.75f;
+
+  ImVec2 offset = canvas->Offset;
+
+  // Calculate visible range
+  int startX = (int)((-offset.x) / HEX_X_SPACING) - 1;
+  int startY = (int)((-offset.y) / HEX_Y_SPACING) - 1;
+  int endX = startX + (int)(canvasSize.x / HEX_X_SPACING) + 2;
+  int endY = startY + (int)(canvasSize.y / HEX_Y_SPACING) + 2;
+
+  ImColor gridColor = IM_COL32(50, 60, 70, 40); // Faint hex lines
+
+  for (int y = startY; y < endY; ++y) {
+    for (int x = startX; x < endX; ++x) {
+      float xPos = x * HEX_X_SPACING;
+      float yPos = y * HEX_Y_SPACING;
+      if (y % 2 != 0)
+        xPos += HEX_X_SPACING * 0.5f;
+
+      ImVec2 center =
+          ImVec2(canvasPos.x + offset.x + xPos, canvasPos.y + offset.y + yPos);
+
+      // Draw Hexagon
+      ImVec2 verts[6];
+      for (int i = 0; i < 6; ++i) {
+        float angle = 3.14159f / 3.0f * (i + 0.5f);
+        verts[i] = ImVec2(center.x + cos(angle) * HEX_SIZE * 0.5f,
+                          center.y + sin(angle) * HEX_SIZE * 0.5f);
+      }
+      drawList->AddPolyline(verts, 6, gridColor, true, 1.5f);
+    }
+  }
+
+  // 2. Glassmorphism Styles
+  ImNodes::Ez::PushStyleVar(ImNodesStyleVar_NodeRounding, 8.0f);
+
+  // Update rendering colors in RenderNode manually? No, we set them per node
+  // locally mostly, but lets set defaults for others
+  canvas->Colors[ImNodes::ColCanvasLines] =
+      IM_COL32(0, 0, 0, 0); // Hide default grid
+  canvas->Colors[ImNodes::ColNodeBorder] =
+      IM_COL32(100, 200, 255, 150); // Cyan glass border
+
   ImGui::Text("Debug: %s", debugMsg.c_str());
-  ImNodes::Ez::PushStyleVar(ImNodesStyleVar_NodeRounding, 5.0f);
 
   RenderNodes();
 
   RenderContextMenu();
 
   ImNodes::Ez::EndCanvas();
-  ImNodes::Ez::PopStyleVar();
+  ImNodes::Ez::PopStyleVar(1);
   ImGui::End();
 }
 
