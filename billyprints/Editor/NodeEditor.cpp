@@ -41,6 +41,13 @@ inline void NodeEditor::RenderNode(Node *node) {
         node->value = !node->value;
       }
       ImGui::PopStyleColor();
+    } else if (titleStr == "Pin Out" || titleStr == "PinOut") {
+      bool signal = node->Evaluate();
+      ImGui::PushStyleColor(ImGuiCol_Button, signal
+                                                 ? ImVec4(0, 0.8f, 0, 1)
+                                                 : ImVec4(0.1f, 0.1f, 0.1f, 1));
+      ImGui::Button(signal ? "HIGH" : "LOW", ImVec2(40, 30));
+      ImGui::PopStyleColor();
     } else {
       ImGui::Text("%d", (Node *)node->Evaluate());
     }
