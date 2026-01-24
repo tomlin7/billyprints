@@ -63,6 +63,30 @@ inline void NodeEditor::RenderNode(Node *node) {
     if (ImNodes::GetNewConnection(
             &new_connection.inputNode, &new_connection.inputSlot,
             &new_connection.outputNode, &new_connection.outputSlot)) {
+
+      // Enforce Single Input Connection Rule:
+      // Check if input node already has a connection to this specific input
+      // slot
+      Node *inputNode = (Node *)new_connection.inputNode;
+      Connection existingConnection = {};
+      bool foundExisting = false;
+
+      for (const auto &conn : inputNode->connections) {
+        if (conn.inputNode == inputNode &&
+            std::string(conn.inputSlot) ==
+                std::string(new_connection.inputSlot)) {
+          existingConnection = conn;
+          foundExisting = true;
+          break;
+        }
+      }
+
+      if (foundExisting) {
+        ((Node *)existingConnection.outputNode)
+            ->DeleteConnection(existingConnection);
+        inputNode->DeleteConnection(existingConnection);
+      }
+
       ((Node *)new_connection.inputNode)->connections.push_back(new_connection);
       ((Node *)new_connection.outputNode)
           ->connections.push_back(new_connection);
