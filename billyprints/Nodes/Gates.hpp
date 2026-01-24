@@ -3,14 +3,17 @@
 #include "Gate.hpp"
 
 #include "AND.hpp"
-#include "OR.hpp"
-#include "NOT.hpp"
 #include "Buffer.hpp"
+#include "CustomGate.hpp"
 #include "NAND.hpp"
 #include "NOR.hpp"
-#include "XOR.hpp"
+#include "NOT.hpp"
+#include "OR.hpp"
 #include "XNOR.hpp"
+#include "XOR.hpp"
+
+#include <functional>
 
 namespace Billyprints {
-    extern std::vector<Gate* (*)()> availableGates;
+extern std::vector<std::function<Gate *()>> availableGates;
 }
