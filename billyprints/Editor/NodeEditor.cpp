@@ -31,7 +31,19 @@ inline void NodeEditor::RenderNode(Node *node) {
   if (ImNodes::Ez::BeginNode(node, node->title, &node->pos, &node->selected)) {
     ImNodes::Ez::InputSlots(node->inputSlots.data(),
                             static_cast<int>(node->inputSlots.size()));
-    ImGui::Text("%d", (Node *)node->Evaluate());
+
+    std::string titleStr = node->title;
+    if (titleStr == "Pin In" || titleStr == "PinIn") {
+      ImGui::PushStyleColor(ImGuiCol_Button, node->value
+                                                 ? ImVec4(0, 0.6f, 0, 1)
+                                                 : ImVec4(0.6f, 0, 0, 1));
+      if (ImGui::Button(node->value ? "ON" : "OFF", ImVec2(40, 30))) {
+        node->value = !node->value;
+      }
+      ImGui::PopStyleColor();
+    } else {
+      ImGui::Text("%d", (Node *)node->Evaluate());
+    }
     ImNodes::Ez::OutputSlots(node->outputSlots.data(),
                              static_cast<int>(node->outputSlots.size()));
 
