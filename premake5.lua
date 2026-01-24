@@ -1,3 +1,5 @@
+require "premake/export-compile-commands"
+
 workspace "Billyprints"
     architecture "x64"
     startproject "Billyprints"

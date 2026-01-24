@@ -12,9 +12,9 @@ Node *CreateNodeByType(const std::string &type) {
     return new AND();
   if (type == "NOT")
     return new NOT();
-  if (type == "PinIn")
+  if (type == "PinIn" || type == "Pin In")
     return new PinIn();
-  if (type == "PinOut")
+  if (type == "PinOut" || type == "Pin Out")
     return new PinOut();
   return nullptr; // Custom gates inside custom gates not supported yet for
                   // simplicity
@@ -35,9 +35,9 @@ CustomGate::CustomGate(const GateDefinition &def)
       internalNodes.push_back(newNode);
       nodeMap[nodeDef.id] = newNode;
 
-      if (nodeDef.type == "PinIn") {
+      if (nodeDef.type == "PinIn" || nodeDef.type == "Pin In") {
         internalInputs.push_back((PinIn *)newNode);
-      } else if (nodeDef.type == "PinOut") {
+      } else if (nodeDef.type == "PinOut" || nodeDef.type == "Pin Out") {
         internalOutputs.push_back((PinOut *)newNode);
       }
     }

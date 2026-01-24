@@ -4,6 +4,8 @@
 ## Dear ImGui artifacts
 imgui.ini
 
+.cache
+
 ## General build artifacts
 *.o
 *.obj

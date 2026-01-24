@@ -7,7 +7,6 @@
 #include <map>
 #include <set>
 
-
 namespace Billyprints {
 inline void NodeEditor::RenderNode(Node *node) {
   ImU32 titleColor = IM_COL32(50, 50, 50, 255);
@@ -145,9 +144,9 @@ void NodeEditor::CreateGate() {
     def.nodes.push_back(nd);
 
     std::string titleStr = node->title;
-    if (titleStr == "Input" || titleStr == "PinIn")
+    if (titleStr == "Input" || titleStr == "Pin In")
       def.inputPinIndices.push_back(nd.id);
-    else if (titleStr == "Output" || titleStr == "PinOut")
+    else if (titleStr == "Output" || titleStr == "Pin Out")
       def.outputPinIndices.push_back(nd.id);
   }
 
@@ -166,6 +165,12 @@ void NodeEditor::CreateGate() {
   }
 
   // 3. Register
+  FILE *f = fopen("debug.txt", "a");
+  if (f) {
+    fprintf(f, "Registering new gate: %s with %zu nodes and %zu connections\n",
+            def.name.c_str(), def.nodes.size(), def.connections.size());
+    fclose(f);
+  }
   availableGates.push_back([def]() -> Gate * { return new CustomGate(def); });
 }
 
@@ -185,20 +190,32 @@ void NodeEditor::Redraw() {
         if (ImGui::MenuItem("Save", "Ctrl+S")) {
         }
         if (ImGui::MenuItem("Create Gate..")) {
-          ImGui::OpenPopup("CreateGatePopup");
+          openCreateGatePopup = true;
         }
         if (ImGui::MenuItem("Close", "Ctrl+W")) {
+        }
+        if (ImGui::MenuItem("Force Create Gate (Debug)")) {
+          debugMsg = "Force Creating Gate...";
+          CreateGate();
+          debugMsg += " -> Done";
         }
         ImGui::EndMenu();
       }
       ImGui::EndMainMenuBar();
     }
 
+    if (openCreateGatePopup) {
+      ImGui::OpenPopup("CreateGatePopup");
+      openCreateGatePopup = false;
+    }
+
     if (ImGui::BeginPopupModal("CreateGatePopup", NULL,
                                ImGuiWindowFlags_AlwaysAutoResize)) {
       ImGui::InputText("Gate Name", gateName, 128);
       if (ImGui::Button("Create", ImVec2(120, 0))) {
+        debugMsg = "Creating Gate: " + std::string(gateName);
         CreateGate();
+        debugMsg += " -> Done";
         ImGui::CloseCurrentPopup();
       }
       ImGui::SameLine();
@@ -207,18 +224,19 @@ void NodeEditor::Redraw() {
       }
       ImGui::EndPopup();
     }
-
-    ImNodes::Ez::BeginCanvas();
-    ImNodes::Ez::PushStyleVar(ImNodesStyleVar_NodeRounding, 5.0f);
-
-    RenderNodes();
-
-    RenderContextMenu();
-
-    ImNodes::Ez::EndCanvas();
-    ImNodes::Ez::PopStyleVar();
-    ImGui::End();
   }
+
+  ImNodes::Ez::BeginCanvas();
+  ImGui::Text("Debug: %s", debugMsg.c_str());
+  ImNodes::Ez::PushStyleVar(ImNodesStyleVar_NodeRounding, 5.0f);
+
+  RenderNodes();
+
+  RenderContextMenu();
+
+  ImNodes::Ez::EndCanvas();
+  ImNodes::Ez::PopStyleVar();
+  ImGui::End();
 }
 
 NodeEditor::NodeEditor() {}
