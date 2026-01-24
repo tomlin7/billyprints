@@ -17,8 +17,12 @@ class NodeEditor {
   void CreateGate();
 
   std::vector<GateDefinition> customGateDefinitions;
-  void SaveGates();
-  void LoadGates();
+  void SaveGates(const std::string &filename);
+  void LoadGates(const std::string &filename);
+
+  bool openSaveGatePopup = false;
+  bool openLoadGatePopup = false;
+  char currentFilename[128] = "custom_gates.bin";
 
 public:
   NodeEditor();

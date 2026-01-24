@@ -234,11 +234,11 @@ void NodeEditor::Redraw() {
   // Main Menu Bar
   if (ImGui::BeginMainMenuBar()) {
     if (ImGui::BeginMenu("File")) {
-      if (ImGui::MenuItem("Save Custom Gates")) {
-        SaveGates();
+      if (ImGui::MenuItem("Save Custom Gates...")) {
+        openSaveGatePopup = true;
       }
-      if (ImGui::MenuItem("Load Custom Gates")) {
-        LoadGates();
+      if (ImGui::MenuItem("Load Custom Gates...")) {
+        openLoadGatePopup = true;
       }
       ImGui::Separator();
       if (ImGui::MenuItem("Exit")) {
@@ -247,6 +247,44 @@ void NodeEditor::Redraw() {
       ImGui::EndMenu();
     }
     ImGui::EndMainMenuBar();
+  }
+
+  // Save Gate Popup
+  if (openSaveGatePopup) {
+    ImGui::OpenPopup("SaveGatePopup");
+    openSaveGatePopup = false;
+  }
+  if (ImGui::BeginPopupModal("SaveGatePopup", NULL,
+                             ImGuiWindowFlags_AlwaysAutoResize)) {
+    ImGui::InputText("Filename", currentFilename, 128);
+    if (ImGui::Button("Save", ImVec2(120, 0))) {
+      SaveGates(std::string(currentFilename));
+      ImGui::CloseCurrentPopup();
+    }
+    ImGui::SameLine();
+    if (ImGui::Button("Cancel", ImVec2(120, 0))) {
+      ImGui::CloseCurrentPopup();
+    }
+    ImGui::EndPopup();
+  }
+
+  // Load Gate Popup
+  if (openLoadGatePopup) {
+    ImGui::OpenPopup("LoadGatePopup");
+    openLoadGatePopup = false;
+  }
+  if (ImGui::BeginPopupModal("LoadGatePopup", NULL,
+                             ImGuiWindowFlags_AlwaysAutoResize)) {
+    ImGui::InputText("Filename", currentFilename, 128);
+    if (ImGui::Button("Load", ImVec2(120, 0))) {
+      LoadGates(std::string(currentFilename));
+      ImGui::CloseCurrentPopup();
+    }
+    ImGui::SameLine();
+    if (ImGui::Button("Cancel", ImVec2(120, 0))) {
+      ImGui::CloseCurrentPopup();
+    }
+    ImGui::EndPopup();
   }
 
   ImGuiWindowFlags window_flags =
@@ -372,8 +410,8 @@ void NodeEditor::Redraw() {
   ImGui::End();
 }
 
-void NodeEditor::SaveGates() {
-  FILE *f = fopen("custom_gates.bin", "wb");
+void NodeEditor::SaveGates(const std::string &filename) {
+  FILE *f = fopen(filename.c_str(), "wb");
   if (!f)
     return;
 
@@ -426,8 +464,8 @@ void NodeEditor::SaveGates() {
   fclose(f);
 }
 
-void NodeEditor::LoadGates() {
-  FILE *f = fopen("custom_gates.bin", "rb");
+void NodeEditor::LoadGates(const std::string &filename) {
+  FILE *f = fopen(filename.c_str(), "rb");
   if (!f)
     return;
 
