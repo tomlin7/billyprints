@@ -18,11 +18,11 @@ int Billyprints::Mainloop() {
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
 
-  // No decorations
-  glfwWindowHint(GLFW_DECORATED, GLFW_FALSE);
+  // Native decorations enabled (Standard Window)
+  // glfwWindowHint(GLFW_DECORATED, GLFW_FALSE);
 
   // Create window with graphics context
-  GLFWwindow *window = glfwCreateWindow(1280, 720, "Imgui setup", NULL, NULL);
+  GLFWwindow *window = glfwCreateWindow(1280, 720, "Billyprints", NULL, NULL);
   if (window == NULL)
     return 1;
   glfwMakeContextCurrent(window);
@@ -35,7 +35,29 @@ int Billyprints::Mainloop() {
   (void)io;
 
   // Setup style
-  ImGui::StyleColorsDark();
+  // Setup style
+  // Modern Dark Theme
+  ImGuiStyle &style = ImGui::GetStyle();
+  style.WindowRounding = 8.0f;
+  style.FrameRounding = 5.0f;
+  style.PopupRounding = 5.0f;
+  style.ScrollbarRounding = 5.0f;
+  style.GrabRounding = 5.0f;
+  style.FramePadding = ImVec2(10, 6);
+  style.WindowPadding = ImVec2(10, 10);
+  style.ItemSpacing = ImVec2(8, 8);
+
+  ImVec4 *colors = style.Colors;
+  colors[ImGuiCol_WindowBg] = ImVec4(0.12f, 0.12f, 0.14f, 1.00f);
+  colors[ImGuiCol_Header] = ImVec4(0.20f, 0.20f, 0.22f, 1.00f);
+  colors[ImGuiCol_HeaderHovered] = ImVec4(0.25f, 0.25f, 0.27f, 1.00f);
+  colors[ImGuiCol_HeaderActive] = ImVec4(0.30f, 0.30f, 0.32f, 1.00f);
+  colors[ImGuiCol_Button] = ImVec4(0.20f, 0.20f, 0.22f, 1.00f);
+  colors[ImGuiCol_ButtonHovered] = ImVec4(0.25f, 0.25f, 0.27f, 1.00f);
+  colors[ImGuiCol_ButtonActive] = ImVec4(0.30f, 0.30f, 0.32f, 1.00f);
+  colors[ImGuiCol_FrameBg] = ImVec4(0.20f, 0.20f, 0.22f, 1.00f);
+  colors[ImGuiCol_TitleBg] = ImVec4(0.12f, 0.12f, 0.14f, 1.00f);
+  colors[ImGuiCol_TitleBgActive] = ImVec4(0.12f, 0.12f, 0.14f, 1.00f);
 
   // Setup Platform/Renderer backends
   ImGui_ImplGlfw_InitForOpenGL(window, true);
@@ -54,19 +76,12 @@ int Billyprints::Mainloop() {
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
 
-    // Window sizing
+    // Standard Window Rendering
     const ImGuiViewport *viewport = ImGui::GetMainViewport();
     ImGui::SetNextWindowPos(viewport->WorkPos);
     ImGui::SetNextWindowSize(viewport->WorkSize);
 
-    // Window Dragging
-    if (ImGui::IsMouseDragging(0) && io.MousePos.y < 30 &&
-        !ImGui::IsAnyItemActive()) {
-      int x, y;
-      glfwGetWindowPos(window, &x, &y);
-      glfwSetWindowPos(window, x + (int)io.MouseDelta.x,
-                       y + (int)io.MouseDelta.y);
-    }
+    // No custom dragging/resizing logic needed for native window
 
     nodeEditor.Redraw();
 
