@@ -1,11 +1,14 @@
 #include "NodeEditor.hpp"
 #include "../Nodes/Gates/CustomGate.hpp"
+#include <filesystem>
 #include <functional>
 #include <imgui.h>
 #include <imnodes.h>
 #include <iostream>
 #include <map>
 #include <set>
+#include <string>
+#include <vector>
 
 namespace Billyprints {
 inline void NodeEditor::RenderNode(Node *node) {
@@ -249,6 +252,45 @@ void NodeEditor::Redraw() {
     ImGui::EndMainMenuBar();
   }
 
+  // File Picker Helper
+  auto RenderFilePicker = [&]() {
+    ImGui::TextWrapped("Path: %s", currentPath.string().c_str());
+    if (ImGui::Button("Up")) {
+      if (currentPath.has_parent_path())
+        currentPath = currentPath.parent_path();
+    }
+
+    ImGui::Separator();
+    ImGui::BeginChild("FileList", ImVec2(400, 200), true);
+
+    std::vector<std::filesystem::directory_entry> dirs, files;
+    try {
+      for (const auto &entry :
+           std::filesystem::directory_iterator(currentPath)) {
+        if (entry.is_directory())
+          dirs.push_back(entry);
+        else if (entry.path().extension() == ".bin")
+          files.push_back(entry);
+      }
+    } catch (...) {
+    }
+
+    for (const auto &dir : dirs) {
+      std::string dirName = "[DIR] " + dir.path().filename().string();
+      if (ImGui::Selectable(dirName.c_str())) {
+        currentPath = dir.path();
+      }
+    }
+
+    for (const auto &file : files) {
+      if (ImGui::Selectable(file.path().filename().string().c_str())) {
+        strncpy(currentFilename, file.path().filename().string().c_str(), 128);
+      }
+    }
+
+    ImGui::EndChild();
+  };
+
   // Save Gate Popup
   if (openSaveGatePopup) {
     ImGui::OpenPopup("SaveGatePopup");
@@ -257,8 +299,13 @@ void NodeEditor::Redraw() {
   if (ImGui::BeginPopupModal("SaveGatePopup", NULL,
                              ImGuiWindowFlags_AlwaysAutoResize)) {
     ImGui::InputText("Filename", currentFilename, 128);
+
+    RenderFilePicker();
+    ImGui::Separator();
+
     if (ImGui::Button("Save", ImVec2(120, 0))) {
-      SaveGates(std::string(currentFilename));
+      std::filesystem::path fullPath = currentPath / currentFilename;
+      SaveGates(fullPath.string());
       ImGui::CloseCurrentPopup();
     }
     ImGui::SameLine();
@@ -276,8 +323,13 @@ void NodeEditor::Redraw() {
   if (ImGui::BeginPopupModal("LoadGatePopup", NULL,
                              ImGuiWindowFlags_AlwaysAutoResize)) {
     ImGui::InputText("Filename", currentFilename, 128);
+
+    RenderFilePicker();
+    ImGui::Separator();
+
     if (ImGui::Button("Load", ImVec2(120, 0))) {
-      LoadGates(std::string(currentFilename));
+      std::filesystem::path fullPath = currentPath / currentFilename;
+      LoadGates(fullPath.string());
       ImGui::CloseCurrentPopup();
     }
     ImGui::SameLine();

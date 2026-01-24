@@ -3,6 +3,8 @@
 #include "Connection.hpp"
 #include "Gates.hpp"
 #include "Nodes.hpp"
+#include <filesystem>
+
 
 namespace Billyprints {
 class NodeEditor {
@@ -23,6 +25,7 @@ class NodeEditor {
   bool openSaveGatePopup = false;
   bool openLoadGatePopup = false;
   char currentFilename[128] = "custom_gates.bin";
+  std::filesystem::path currentPath = std::filesystem::current_path();
 
 public:
   NodeEditor();
