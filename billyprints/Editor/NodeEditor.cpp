@@ -220,12 +220,34 @@ void NodeEditor::CreateGate() {
             def.name.c_str(), def.nodes.size(), def.connections.size());
     fclose(f);
   }
+
+  // Store definition for serialization
+  customGateDefinitions.push_back(def);
+
   availableGates.push_back([def]() -> Gate * { return new CustomGate(def); });
 }
 
 void NodeEditor::Redraw() {
   auto context = ImNodes::Ez::CreateContext();
   IM_UNUSED(context);
+
+  // Main Menu Bar
+  if (ImGui::BeginMainMenuBar()) {
+    if (ImGui::BeginMenu("File")) {
+      if (ImGui::MenuItem("Save Custom Gates")) {
+        SaveGates();
+      }
+      if (ImGui::MenuItem("Load Custom Gates")) {
+        LoadGates();
+      }
+      ImGui::Separator();
+      if (ImGui::MenuItem("Exit")) {
+        exit(0);
+      }
+      ImGui::EndMenu();
+    }
+    ImGui::EndMainMenuBar();
+  }
 
   ImGuiWindowFlags window_flags =
       ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize |
@@ -348,6 +370,132 @@ void NodeEditor::Redraw() {
   ImNodes::Ez::EndCanvas();
   ImNodes::Ez::PopStyleVar(1);
   ImGui::End();
+}
+
+void NodeEditor::SaveGates() {
+  FILE *f = fopen("custom_gates.bin", "wb");
+  if (!f)
+    return;
+
+  size_t count = customGateDefinitions.size();
+  fwrite(&count, sizeof(size_t), 1, f);
+
+  for (const auto &def : customGateDefinitions) {
+    // Name
+    size_t nameLen = def.name.size();
+    fwrite(&nameLen, sizeof(size_t), 1, f);
+    fwrite(def.name.c_str(), 1, nameLen, f);
+
+    // Nodes
+    size_t nodeCount = def.nodes.size();
+    fwrite(&nodeCount, sizeof(size_t), 1, f);
+    for (const auto &node : def.nodes) {
+      size_t typeLen = node.type.size();
+      fwrite(&typeLen, sizeof(size_t), 1, f);
+      fwrite(node.type.c_str(), 1, typeLen, f);
+      fwrite(&node.pos, sizeof(ImVec2), 1, f);
+      fwrite(&node.id, sizeof(int), 1, f);
+    }
+
+    // Connections
+    size_t connCount = def.connections.size();
+    fwrite(&connCount, sizeof(size_t), 1, f);
+    for (const auto &conn : def.connections) {
+      fwrite(&conn.inputNodeId, sizeof(int), 1, f);
+
+      size_t inSlotLen = conn.inputSlot.size();
+      fwrite(&inSlotLen, sizeof(size_t), 1, f);
+      fwrite(conn.inputSlot.c_str(), 1, inSlotLen, f);
+
+      fwrite(&conn.outputNodeId, sizeof(int), 1, f);
+
+      size_t outSlotLen = conn.outputSlot.size();
+      fwrite(&outSlotLen, sizeof(size_t), 1, f);
+      fwrite(conn.outputSlot.c_str(), 1, outSlotLen, f);
+    }
+
+    // Pin Indices
+    size_t inPinCount = def.inputPinIndices.size();
+    fwrite(&inPinCount, sizeof(size_t), 1, f);
+    fwrite(def.inputPinIndices.data(), sizeof(int), inPinCount, f);
+
+    size_t outPinCount = def.outputPinIndices.size();
+    fwrite(&outPinCount, sizeof(size_t), 1, f);
+    fwrite(def.outputPinIndices.data(), sizeof(int), outPinCount, f);
+  }
+  fclose(f);
+}
+
+void NodeEditor::LoadGates() {
+  FILE *f = fopen("custom_gates.bin", "rb");
+  if (!f)
+    return;
+
+  customGateDefinitions.clear();
+
+  size_t count = 0;
+  fread(&count, sizeof(size_t), 1, f);
+
+  for (size_t i = 0; i < count; i++) {
+    GateDefinition def;
+
+    // Name
+    size_t nameLen = 0;
+    fread(&nameLen, sizeof(size_t), 1, f);
+    def.name.resize(nameLen);
+    fread(&def.name[0], 1, nameLen, f);
+
+    // Nodes
+    size_t nodeCount = 0;
+    fread(&nodeCount, sizeof(size_t), 1, f);
+    for (size_t j = 0; j < nodeCount; j++) {
+      NodeDefinition nd;
+      size_t typeLen = 0;
+      fread(&typeLen, sizeof(size_t), 1, f);
+      nd.type.resize(typeLen);
+      fread(&nd.type[0], 1, typeLen, f);
+      fread(&nd.pos, sizeof(ImVec2), 1, f);
+      fread(&nd.id, sizeof(int), 1, f);
+      def.nodes.push_back(nd);
+    }
+
+    // Connections
+    size_t connCount = 0;
+    fread(&connCount, sizeof(size_t), 1, f);
+    for (size_t j = 0; j < connCount; j++) {
+      ConnectionDefinition cd;
+      fread(&cd.inputNodeId, sizeof(int), 1, f);
+
+      size_t inSlotLen = 0;
+      fread(&inSlotLen, sizeof(size_t), 1, f);
+      cd.inputSlot.resize(inSlotLen);
+      fread(&cd.inputSlot[0], 1, inSlotLen, f);
+
+      fread(&cd.outputNodeId, sizeof(int), 1, f);
+
+      size_t outSlotLen = 0;
+      fread(&outSlotLen, sizeof(size_t), 1, f);
+      cd.outputSlot.resize(outSlotLen);
+      fread(&cd.outputSlot[0], 1, outSlotLen, f);
+
+      def.connections.push_back(cd);
+    }
+
+    // Pin Indices
+    size_t inPinCount = 0;
+    fread(&inPinCount, sizeof(size_t), 1, f);
+    def.inputPinIndices.resize(inPinCount);
+    fread(def.inputPinIndices.data(), sizeof(int), inPinCount, f);
+
+    size_t outPinCount = 0;
+    fread(&outPinCount, sizeof(size_t), 1, f);
+    def.outputPinIndices.resize(outPinCount);
+    fread(def.outputPinIndices.data(), sizeof(int), outPinCount, f);
+
+    customGateDefinitions.push_back(def);
+    availableGates.push_back([def]() -> Gate * { return new CustomGate(def); });
+  }
+  fclose(f);
 }
 
 NodeEditor::NodeEditor() {}

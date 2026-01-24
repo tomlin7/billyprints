@@ -16,6 +16,10 @@ class NodeEditor {
   void RenderContextMenu();
   void CreateGate();
 
+  std::vector<GateDefinition> customGateDefinitions;
+  void SaveGates();
+  void LoadGates();
+
 public:
   NodeEditor();
   void Redraw();
