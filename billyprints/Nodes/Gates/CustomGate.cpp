@@ -62,12 +62,18 @@ CustomGate::CustomGate(const GateDefinition &def)
 
   for (int i = 0; i < inputSlotCount; ++i) {
     char buf[16];
-    sprintf(buf, "In %d", i);
+    if (inputSlotCount == 1)
+      sprintf(buf, "in");
+    else
+      sprintf(buf, "in%d", i);
     inputSlots[i] = {strdup(buf), 1};
   }
   for (int i = 0; i < outputSlotCount; ++i) {
     char buf[16];
-    sprintf(buf, "Out %d", i);
+    if (outputSlotCount == 1)
+      sprintf(buf, "out");
+    else
+      sprintf(buf, "out%d", i);
     outputSlots[i] = {strdup(buf), 1};
   }
 
@@ -107,7 +113,10 @@ bool CustomGate::Evaluate() {
   for (int i = 0; i < inputSlots.size(); ++i) {
     bool slotValue = false;
     char slotName[16];
-    sprintf(slotName, "In %d", i);
+    if (inputSlots.size() == 1)
+      sprintf(slotName, "in");
+    else
+      sprintf(slotName, "in%d", i);
 
     for (const auto &conn : connections) {
       if (conn.inputNode == this && !conn.inputSlot.empty() &&
