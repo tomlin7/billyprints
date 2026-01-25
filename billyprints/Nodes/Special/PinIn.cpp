@@ -3,7 +3,12 @@
 namespace Billyprints {
 PinIn::PinIn() : Node("In", {}, {{"out"}}) { value = true; };
 
-bool PinIn::Evaluate() { return value; };
+bool PinIn::Evaluate() {
+  if (isEvaluating || lastEvaluatedFrame == GlobalFrameCount)
+    return value;
+  lastEvaluatedFrame = GlobalFrameCount;
+  return value;
+};
 
 void PinIn::Render() {
   ImU32 color = GetColor();

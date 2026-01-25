@@ -12,6 +12,7 @@ public:
   ImVec2 pos{};
   bool value = false;
   uint64_t lastEvaluatedFrame = 0;
+  bool isEvaluating = false;
   static uint64_t GlobalFrameCount;
 
   std::vector<Connection> connections{};

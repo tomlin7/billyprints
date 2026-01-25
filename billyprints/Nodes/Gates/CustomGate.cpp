@@ -97,9 +97,11 @@ CustomGate::~CustomGate() {
 }
 
 bool CustomGate::Evaluate() {
-  if (lastEvaluatedFrame == Node::GlobalFrameCount) {
+  if (isEvaluating || lastEvaluatedFrame == Node::GlobalFrameCount) {
     return value;
   }
+
+  isEvaluating = true;
 
   // Step A: Update Internal PinIns
   for (int i = 0; i < inputSlots.size(); ++i) {
@@ -139,6 +141,7 @@ bool CustomGate::Evaluate() {
   }
 
   lastEvaluatedFrame = Node::GlobalFrameCount;
+  isEvaluating = false;
   return value;
 }
 

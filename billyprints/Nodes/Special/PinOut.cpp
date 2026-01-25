@@ -4,14 +4,22 @@ namespace Billyprints {
 PinOut::PinOut() : Node("Out", {{"in"}}, {}) { value = true; };
 
 bool PinOut::Evaluate() {
+  if (isEvaluating || lastEvaluatedFrame == GlobalFrameCount)
+    return value;
+
+  isEvaluating = true;
   for (const auto &cn : connections) {
     if (cn.inputNode == this && ((Node *)cn.outputNode)->Evaluate()) {
       value = true;
+      lastEvaluatedFrame = GlobalFrameCount;
+      isEvaluating = false;
       return value;
     }
   }
 
   value = false;
+  lastEvaluatedFrame = GlobalFrameCount;
+  isEvaluating = false;
   return value;
 };
 
