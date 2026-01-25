@@ -1,13 +1,11 @@
 #include "NodeEditor.hpp"
 #include "../Nodes/Gates/CustomGate.hpp"
+#include <ImNodes.h>
 #include <filesystem>
 #include <functional>
 #include <imgui.h>
-#include <imnodes.h>
-#include <iomanip>
 #include <iostream>
 #include <map>
-#include <set>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -484,7 +482,13 @@ void NodeEditor::Redraw() {
       ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse |
       ImGuiWindowFlags_MenuBar;
 
+  ImVec2 mainWinPos;
+  float mainWinWidth;
+
   if (ImGui::Begin("Billyprints", NULL, window_flags)) {
+    mainWinPos = ImGui::GetWindowPos();
+    mainWinWidth = ImGui::GetWindowWidth();
+
     if (ImGui::BeginMenuBar()) {
       if (ImGui::BeginMenu("File")) {
         if (ImGui::MenuItem("Open..", "Ctrl+O")) {
@@ -541,13 +545,10 @@ void NodeEditor::Redraw() {
     }
   }
 
+  float sidebarWidth = 400.0f;
   if (showScriptEditor) {
     ImGui::Columns(2, "EditorSplit", true);
-    static bool setColumnWidth = true;
-    if (setColumnWidth) {
-      ImGui::SetColumnWidth(0, ImGui::GetWindowWidth() - 400);
-      setColumnWidth = false;
-    }
+    ImGui::SetColumnWidth(0, ImGui::GetWindowWidth() - sidebarWidth);
   }
 
   ImNodes::Ez::BeginCanvas();
@@ -628,19 +629,26 @@ void NodeEditor::Redraw() {
 
   if (showScriptEditor) {
     ImGui::NextColumn();
-    // Only update script from nodes if the user isn't currently typing in the
-    // editor
-    static bool scriptActive = false;
+    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(4, 2));
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(4, 4));
+    ImGui::BeginChild("ScriptPanel", ImVec2(0, 0), false);
 
-    ImGui::BeginChild("ScriptPanel", ImVec2(0, 0), true);
+    // Header Row
+    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
     ImGui::Text("Scene Script");
-    if (ImGui::Button("Sync From Canvas")) {
+    ImGui::SameLine(ImGui::GetContentRegionAvail().x - 90);
+    if (ImGui::SmallButton("↻")) {
       UpdateScriptFromNodes();
     }
     ImGui::SameLine();
-    if (ImGui::Button("Sync To Canvas")) {
+    if (ImGui::SmallButton("Apply")) {
       UpdateNodesFromScript();
     }
+    ImGui::PopStyleVar(); // FramePadding
+
+    // Only update script from nodes if the user isn't currently typing in the
+    // editor
+    static bool scriptActive = false;
 
     if (!scriptActive) {
       UpdateScriptFromNodes();
@@ -666,16 +674,43 @@ void NodeEditor::Redraw() {
 
     if (!scriptError.empty()) {
       ImGui::Separator();
-      ImGui::TextColored(ImVec4(1.0f, 0.4f, 0.4f, 1.0f), "Errors:");
-      ImGui::BeginChild("ErrorList", ImVec2(0, 0), true);
-      ImGui::TextWrapped("%s", scriptError.c_str());
-      ImGui::EndChild();
-    }
-
+      if (ImGui::Selectable(errorPanelCollapsed ? "> Show Errors"
+                                                : "v Hide Errors")) {
+        errorPanelCollapsed = !errorPanelCollapsed;
+      }
+      if (!errorPanelCollapsed) {
+        ImGui::BeginChild("ErrorList", ImVec2(0, 150), true);
+        ImGui::SetWindowFontScale(0.9f);
+        ImGui::TextWrapped("%s", scriptError.c_str());
+        ImGui::EndChild();
+      }
+    } // End of !scriptError.empty()
     ImGui::EndChild();
+    ImGui::PopStyleVar(2); // ItemSpacing, WindowPadding
     ImGui::Columns(1);
   }
 
+  ImGui::End();
+
+  // Persistent Sidebar Toggle Overlay
+  float buttonWidth = 30.0f;
+  float overlayX = mainWinPos.x + mainWinWidth - buttonWidth -
+                   5; // Default (Collapsed) position
+
+  if (showScriptEditor) {
+    overlayX = mainWinPos.x + mainWinWidth - sidebarWidth - buttonWidth;
+  }
+
+  ImGui::SetNextWindowPos(ImVec2(overlayX, mainWinPos.y + 300));
+  ImGui::SetNextWindowBgAlpha(0.0f);
+  if (ImGui::Begin(
+          "SidebarToggleOverlay", NULL,
+          ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize |
+              ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav)) {
+    if (ImGui::Button(showScriptEditor ? ">" : "<", ImVec2(buttonWidth, 30))) {
+      showScriptEditor = !showScriptEditor;
+    }
+  }
   ImGui::End();
 }
 

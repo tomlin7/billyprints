@@ -25,7 +25,6 @@ void PinIn::Render() {
   ImNodes::Ez::PushStyleColor(ImNodesStyleCol_NodeBorder, borderColor);
 
   if (ImNodes::Ez::BeginNode(this, "", &pos, &selected)) {
-    ImGui::SetWindowFontScale(0.8f);
     ImNodes::Ez::InputSlots(inputSlots.data(), inputSlotCount);
 
     ImGui::PushStyleColor(ImGuiCol_Button, value ? ImVec4(0, 0.6f, 0, 1)
@@ -68,7 +67,6 @@ void PinIn::Render() {
       canvas->Colors[ImNodes::ColConnection] = originalConnectionColor;
     }
 
-    ImGui::SetWindowFontScale(1.0f);
     ImNodes::Ez::EndNode();
     ImNodes::Ez::PopStyleColor(7);
   }

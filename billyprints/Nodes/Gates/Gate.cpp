@@ -32,7 +32,6 @@ void Gate::Render() {
   ImNodes::Ez::PushStyleColor(ImNodesStyleCol_NodeBorder, borderColor);
 
   if (ImNodes::Ez::BeginNode(this, "", &pos, &selected)) {
-    ImGui::SetWindowFontScale(0.8f);
 
     ImNodes::Ez::InputSlots(inputSlots.data(), inputSlotCount);
 
@@ -98,7 +97,6 @@ void Gate::Render() {
       canvas->Colors[ImNodes::ColConnection] = originalConnectionColor;
     }
 
-    ImGui::SetWindowFontScale(1.0f);
     ImNodes::Ez::EndNode();
     ImNodes::Ez::PopStyleColor(7);
   }

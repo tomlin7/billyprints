@@ -26,7 +26,8 @@ class NodeEditor {
   std::string currentScript;
   std::string lastParsedScript;
   std::string scriptError;
-  bool showScriptEditor = false;
+  bool showScriptEditor = true;
+  bool errorPanelCollapsed = false;
   void UpdateScriptFromNodes();
   void UpdateNodesFromScript();
 

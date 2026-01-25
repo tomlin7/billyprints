@@ -38,7 +38,6 @@ void PinOut::Render() {
   ImNodes::Ez::PushStyleColor(ImNodesStyleCol_NodeBorder, borderColor);
 
   if (ImNodes::Ez::BeginNode(this, "", &pos, &selected)) {
-    ImGui::SetWindowFontScale(0.8f);
     ImNodes::Ez::InputSlots(inputSlots.data(), inputSlotCount);
 
     bool signal = Evaluate();
@@ -50,7 +49,6 @@ void PinOut::Render() {
 
     ImNodes::Ez::OutputSlots(outputSlots.data(), outputSlotCount);
     // Connections (PinOut usually has no outgoing connections)
-    ImGui::SetWindowFontScale(1.0f);
     ImNodes::Ez::EndNode();
     ImNodes::Ez::PopStyleColor(7);
   }
