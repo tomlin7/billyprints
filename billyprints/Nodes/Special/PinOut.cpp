@@ -1,7 +1,7 @@
 #include "PinOut.hpp"
 
 namespace Billyprints {
-PinOut::PinOut() : Node("Out", {{">"}}, {}) { value = true; };
+PinOut::PinOut() : Node("Out", {{"in"}}, {}) { value = true; };
 
 bool PinOut::Evaluate() {
   for (const auto &cn : connections) {

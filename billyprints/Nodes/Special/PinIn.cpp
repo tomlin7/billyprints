@@ -1,7 +1,7 @@
 #include "PinIn.hpp"
 
 namespace Billyprints {
-PinIn::PinIn() : Node("In", {}, {{"->"}}) { value = true; };
+PinIn::PinIn() : Node("In", {}, {{"out"}}) { value = true; };
 
 bool PinIn::Evaluate() { return value; };
 
@@ -41,8 +41,9 @@ void PinIn::Render() {
       ImColor originalConnectionColor = canvas->Colors[ImNodes::ColConnection];
       canvas->Colors[ImNodes::ColConnection] =
           signal ? IM_COL32(255, 160, 20, 255) : IM_COL32(80, 90, 100, 255);
-      if (!ImNodes::Connection(connection.inputNode, connection.inputSlot,
-                               connection.outputNode, connection.outputSlot)) {
+      if (!ImNodes::Connection(
+              connection.inputNode, connection.inputSlot.c_str(),
+              connection.outputNode, connection.outputSlot.c_str())) {
         ((Node *)connection.inputNode)->DeleteConnection(connection);
         ((Node *)connection.outputNode)->DeleteConnection(connection);
       }

@@ -108,8 +108,8 @@ bool CustomGate::Evaluate() {
     sprintf(slotName, "In %d", i);
 
     for (const auto &conn : connections) {
-      if (conn.inputNode == this && conn.inputSlot &&
-          strcmp(conn.inputSlot, slotName) == 0) {
+      if (conn.inputNode == this && !conn.inputSlot.empty() &&
+          strcmp(conn.inputSlot.c_str(), slotName) == 0) {
         Node *source = (Node *)conn.outputNode;
         slotValue = source->Evaluate();
         break;
