@@ -118,6 +118,7 @@ void NodeEditor::CreateGate() {
                (int)(newGateColor[2] * 255), 200);
 
   customGateDefinitions.push_back(def);
+  CustomGate::GateRegistry[def.name] = def;
 
   availableGates.push_back([def]() -> Gate * { return new CustomGate(def); });
 }
@@ -484,6 +485,7 @@ void NodeEditor::LoadGates(const std::string &filename) {
     fread(def.outputPinIndices.data(), sizeof(int), outPinCount, f);
 
     customGateDefinitions.push_back(def);
+    CustomGate::GateRegistry[def.name] = def;
     availableGates.push_back([def]() -> Gate * { return new CustomGate(def); });
   }
   fclose(f);

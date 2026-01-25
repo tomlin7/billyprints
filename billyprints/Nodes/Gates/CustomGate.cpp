@@ -3,9 +3,10 @@
 #include "../Special/PinOut.hpp"
 #include "AND.hpp"
 #include "NOT.hpp"
-#include "OR.hpp" // Just in case, though we removed it from menu, the class exists
 
 namespace Billyprints {
+
+std::map<std::string, GateDefinition> CustomGate::GateRegistry;
 
 Node *CreateNodeByType(const std::string &type) {
   if (type == "AND")
@@ -16,8 +17,13 @@ Node *CreateNodeByType(const std::string &type) {
     return new PinIn();
   if (type == "Out")
     return new PinOut();
-  return nullptr; // Custom gates inside custom gates not supported yet for
-                  // simplicity
+
+  // Check Custom Gate Registry
+  if (CustomGate::GateRegistry.count(type)) {
+    return new CustomGate(CustomGate::GateRegistry[type]);
+  }
+
+  return nullptr;
 }
 
 CustomGate::CustomGate(const GateDefinition &def)

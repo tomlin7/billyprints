@@ -47,6 +47,9 @@ public:
   std::vector<PinIn *> internalInputs;
   std::vector<PinOut *> internalOutputs;
 
+  // Registry for all custom gates
+  static std::map<std::string, GateDefinition> GateRegistry;
+
 private:
   GateDefinition definition;
 };
