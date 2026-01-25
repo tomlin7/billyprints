@@ -30,10 +30,23 @@ void PinIn::Render() {
 
     ImGui::PushStyleColor(ImGuiCol_Button, value ? ImVec4(0, 0.6f, 0, 1)
                                                  : ImVec4(0.6f, 0, 0, 1));
-    if (ImGui::Button(value ? "ON" : "OFF", ImVec2(40, 30))) {
-      value = !value;
+
+    if (isMomentary) {
+      ImGui::Button(value ? "HOLD" : "PUSH", ImVec2(40, 30));
+      value = ImGui::IsItemActive();
+    } else {
+      if (ImGui::Button(value ? "ON" : "OFF", ImVec2(40, 30))) {
+        value = !value;
+      }
     }
     ImGui::PopStyleColor();
+
+    ImGui::SameLine();
+    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0, 0));
+    ImGui::Checkbox("##btnMode", &isMomentary);
+    if (ImGui::IsItemHovered())
+      ImGui::SetTooltip("Momentary Mode");
+    ImGui::PopStyleVar();
 
     ImNodes::Ez::OutputSlots(outputSlots.data(), outputSlotCount);
 

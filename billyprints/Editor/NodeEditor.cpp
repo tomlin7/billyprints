@@ -22,7 +22,15 @@ void NodeEditor::UpdateScriptFromNodes() {
     nodeToId[nodes[i]] = i;
     std::string type = nodes[i]->title;
     ss << type << " n" << i << " @ " << (int)nodes[i]->pos.x << ", "
-       << (int)nodes[i]->pos.y << "\n";
+       << (int)nodes[i]->pos.y;
+
+    if (type == "In") {
+      PinIn *pin = (PinIn *)nodes[i];
+      if (pin->isMomentary)
+        ss << " momentary";
+    }
+
+    ss << "\n";
   }
   ss << "\n";
   for (auto *node : nodes) {
@@ -131,6 +139,9 @@ void NodeEditor::UpdateNodesFromScript() {
         Node *n = CreateNodeByType(type);
         if (n) {
           n->pos = {(float)x, (float)y};
+          if (type == "In" && line.find("momentary") != std::string::npos) {
+            ((PinIn *)n)->isMomentary = true;
+          }
           nodes.push_back(n);
           idToNode[id] = n;
         } else {
