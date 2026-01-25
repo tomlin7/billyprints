@@ -39,9 +39,12 @@ void NodeEditor::UpdateScriptFromNodes() {
 }
 
 void NodeEditor::UpdateNodesFromScript() {
-  // Simple parser: Clear and recreate
-  // Warning: This will destroy connection references in standard Gates if not
-  // careful. But since we recreate EVERYTHING, it should be fine.
+  if (currentScript == lastParsedScript)
+    return;
+  lastParsedScript = currentScript;
+  scriptError = "";
+
+  // Clear nodes
   for (auto *n : nodes)
     delete n;
   nodes.clear();
@@ -49,55 +52,69 @@ void NodeEditor::UpdateNodesFromScript() {
   std::stringstream ss(currentScript);
   std::string line;
   std::map<std::string, Node *> idToNode;
+  int lineNum = 0;
 
   while (std::getline(ss, line)) {
+    lineNum++;
     if (line.empty() || line[0] == '/')
       continue;
 
-    if (line.find("->") != std::string::npos) {
-      // Connection: n0.out -> n1.a
-      size_t arrowPos = line.find("->");
-      std::string outPart = line.substr(0, arrowPos);
-      std::string inPart = line.substr(arrowPos + 2);
+    try {
+      if (line.find("->") != std::string::npos) {
+        size_t arrowPos = line.find("->");
+        std::string outPart = line.substr(0, arrowPos);
+        std::string inPart = line.substr(arrowPos + 2);
 
-      auto parseSlot =
-          [](std::string s,
-             bool isOutput) -> std::pair<std::string, std::string> {
-        s.erase(0, s.find_first_not_of(" \t\n\r"));
-        s.erase(s.find_last_not_of(" \t\n\r") + 1);
-        size_t dot = s.find('.');
-        if (dot == std::string::npos)
-          return {s, isOutput ? "out" : "in"};
-        return {s.substr(0, dot), s.substr(dot + 1)};
-      };
+        auto parseSlot =
+            [](std::string s,
+               bool isOutput) -> std::pair<std::string, std::string> {
+          s.erase(0, s.find_first_not_of(" \t\n\r"));
+          s.erase(s.find_last_not_of(" \t\n\r") + 1);
+          size_t dot = s.find('.');
+          if (dot == std::string::npos)
+            return {s, isOutput ? "out" : "in"};
+          return {s.substr(0, dot), s.substr(dot + 1)};
+        };
 
-      auto outS = parseSlot(outPart, true);
-      auto inS = parseSlot(inPart, false);
+        auto outS = parseSlot(outPart, true);
+        auto inS = parseSlot(inPart, false);
 
-      if (idToNode.count(outS.first) && idToNode.count(inS.first)) {
-        Connection conn;
-        conn.outputNode = idToNode[outS.first];
-        conn.outputSlot = outS.second;
-        conn.inputNode = idToNode[inS.first];
-        conn.inputSlot = inS.second;
+        if (idToNode.count(outS.first) && idToNode.count(inS.first)) {
+          Connection conn;
+          conn.outputNode = idToNode[outS.first];
+          conn.outputSlot = outS.second;
+          conn.inputNode = idToNode[inS.first];
+          conn.inputSlot = inS.second;
 
-        ((Node *)conn.outputNode)->connections.push_back(conn);
-        ((Node *)conn.inputNode)->connections.push_back(conn);
+          ((Node *)conn.outputNode)->connections.push_back(conn);
+          ((Node *)conn.inputNode)->connections.push_back(conn);
+        } else {
+          scriptError += "Line " + std::to_string(lineNum) +
+                         ": Node not found for connection\n";
+        }
+      } else if (line.find("@") != std::string::npos) {
+        std::stringstream lss(line);
+        std::string type, id, at;
+        int x, y;
+        char comma;
+        if (!(lss >> type >> id >> at >> x >> comma >> y)) {
+          scriptError +=
+              "Line " + std::to_string(lineNum) + ": Invalid node format\n";
+          continue;
+        }
+
+        Node *n = CreateNodeByType(type);
+        if (n) {
+          n->pos = {(float)x, (float)y};
+          nodes.push_back(n);
+          idToNode[id] = n;
+        } else {
+          scriptError += "Line " + std::to_string(lineNum) +
+                         ": Unknown node type " + type + "\n";
+        }
       }
-    } else if (line.find("@") != std::string::npos) {
-      // Node: AND n0 @ 10, 20
-      std::stringstream lss(line);
-      std::string type, id, at;
-      int x, y;
-      char comma;
-      lss >> type >> id >> at >> x >> comma >> y;
-
-      Node *n = CreateNodeByType(type);
-      if (n) {
-        n->pos = {(float)x, (float)y};
-        nodes.push_back(n);
-        idToNode[id] = n;
-      }
+    } catch (...) {
+      scriptError += "Line " + std::to_string(lineNum) + ": Unexpected error\n";
     }
   }
 }
@@ -384,6 +401,15 @@ void NodeEditor::Redraw() {
     }
   }
 
+  if (showScriptEditor) {
+    ImGui::Columns(2, "EditorSplit", true);
+    static bool setColumnWidth = true;
+    if (setColumnWidth) {
+      ImGui::SetColumnWidth(0, ImGui::GetWindowWidth() - 400);
+      setColumnWidth = false;
+    }
+  }
+
   ImNodes::Ez::BeginCanvas();
 
   // --- Cyberpunk Visuals Start ---
@@ -482,17 +508,27 @@ void NodeEditor::Redraw() {
     static char scriptBuf[8192];
     memset(scriptBuf, 0, 8192);
     strncpy(scriptBuf, currentScript.c_str(), 8191);
-    if (ImGui::InputTextMultiline("##script", scriptBuf, 8192,
-                                  ImVec2(-1, -1))) {
+
+    ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 5.0f);
+    if (ImGui::InputTextMultiline(
+            "##script", scriptBuf, 8192,
+            ImVec2(-1, -ImGui::GetTextLineHeightWithSpacing() * 8))) {
       currentScript = scriptBuf;
     }
+    ImGui::PopStyleVar();
+
     scriptActive = ImGui::IsItemActive();
 
-    // If script was active and now is not, maybe sync once?
-    // But for "real-time", we might want to sync continuously if it parses
-    // correctly.
     if (scriptActive) {
       UpdateNodesFromScript();
+    }
+
+    if (!scriptError.empty()) {
+      ImGui::Separator();
+      ImGui::TextColored(ImVec4(1.0f, 0.4f, 0.4f, 1.0f), "Errors:");
+      ImGui::BeginChild("ErrorList", ImVec2(0, 0), true);
+      ImGui::TextWrapped("%s", scriptError.c_str());
+      ImGui::EndChild();
     }
 
     ImGui::EndChild();

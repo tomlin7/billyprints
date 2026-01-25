@@ -23,6 +23,8 @@ class NodeEditor {
   void LoadGates(const std::string &filename);
 
   std::string currentScript;
+  std::string lastParsedScript;
+  std::string scriptError;
   bool showScriptEditor = false;
   void UpdateScriptFromNodes();
   void UpdateNodesFromScript();
