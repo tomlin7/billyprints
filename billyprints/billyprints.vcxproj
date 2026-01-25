@@ -167,6 +167,8 @@
     <ClCompile Include="Billyprints.cpp" />
     <ClCompile Include="Editor\Connection.cpp" />
     <ClCompile Include="Editor\NodeEditor.cpp" />
+    <ClCompile Include="Editor\NodeEditor_Gates.cpp" />
+    <ClCompile Include="Editor\NodeEditor_Script.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Nodes\Gates.cpp" />
     <ClCompile Include="Nodes\Gates\AND.cpp" />

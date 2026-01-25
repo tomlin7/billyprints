@@ -16,11 +16,20 @@ class NodeEditor {
   void RenderNode(Node *node);
   void RenderNodes();
   void RenderContextMenu();
+  void RenderDock();
   void CreateGate();
 
   std::vector<GateDefinition> customGateDefinitions;
   void SaveGates(const std::string &filename);
   void LoadGates(const std::string &filename);
+
+  std::string currentScript;
+  std::string lastParsedScript;
+  std::string scriptError;
+  bool showScriptEditor = true;
+  bool errorPanelCollapsed = false;
+  void UpdateScriptFromNodes();
+  void UpdateNodesFromScript();
 
   bool openSaveGatePopup = false;
   bool openLoadGatePopup = false;

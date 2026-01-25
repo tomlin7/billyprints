@@ -62,12 +62,18 @@ CustomGate::CustomGate(const GateDefinition &def)
 
   for (int i = 0; i < inputSlotCount; ++i) {
     char buf[16];
-    sprintf(buf, "In %d", i);
+    if (inputSlotCount == 1)
+      sprintf(buf, "in");
+    else
+      sprintf(buf, "in%d", i);
     inputSlots[i] = {strdup(buf), 1};
   }
   for (int i = 0; i < outputSlotCount; ++i) {
     char buf[16];
-    sprintf(buf, "Out %d", i);
+    if (outputSlotCount == 1)
+      sprintf(buf, "out");
+    else
+      sprintf(buf, "out%d", i);
     outputSlots[i] = {strdup(buf), 1};
   }
 
@@ -97,19 +103,24 @@ CustomGate::~CustomGate() {
 }
 
 bool CustomGate::Evaluate() {
-  if (lastEvaluatedFrame == Node::GlobalFrameCount) {
+  if (isEvaluating || lastEvaluatedFrame == Node::GlobalFrameCount) {
     return value;
   }
+
+  isEvaluating = true;
 
   // Step A: Update Internal PinIns
   for (int i = 0; i < inputSlots.size(); ++i) {
     bool slotValue = false;
     char slotName[16];
-    sprintf(slotName, "In %d", i);
+    if (inputSlots.size() == 1)
+      sprintf(slotName, "in");
+    else
+      sprintf(slotName, "in%d", i);
 
     for (const auto &conn : connections) {
-      if (conn.inputNode == this && conn.inputSlot &&
-          strcmp(conn.inputSlot, slotName) == 0) {
+      if (conn.inputNode == this && !conn.inputSlot.empty() &&
+          strcmp(conn.inputSlot.c_str(), slotName) == 0) {
         Node *source = (Node *)conn.outputNode;
         slotValue = source->Evaluate();
         break;
@@ -139,6 +150,7 @@ bool CustomGate::Evaluate() {
   }
 
   lastEvaluatedFrame = Node::GlobalFrameCount;
+  isEvaluating = false;
   return value;
 }
 

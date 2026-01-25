@@ -21,7 +21,11 @@ void Node::DeleteConnection(const Connection &connection) {
   }
 }
 
-bool Node::Evaluate() { return value; }
+bool Node::Evaluate() {
+  if (isEvaluating || lastEvaluatedFrame == GlobalFrameCount)
+    return value;
+  return value;
+}
 
 ImU32 Node::GetColor() const { return IM_COL32(40, 40, 45, 255); }
 

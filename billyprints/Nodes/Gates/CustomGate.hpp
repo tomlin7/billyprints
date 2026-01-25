@@ -31,6 +31,8 @@ struct GateDefinition {
   ImU32 color = IM_COL32(50, 50, 50, 200); // Default dark grey
 };
 
+Node *CreateNodeByType(const std::string &type);
+
 class CustomGate : public Gate {
 public:
   CustomGate(const GateDefinition &def);

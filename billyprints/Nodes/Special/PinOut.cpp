@@ -1,17 +1,25 @@
 #include "PinOut.hpp"
 
 namespace Billyprints {
-PinOut::PinOut() : Node("Out", {{">"}}, {}) { value = true; };
+PinOut::PinOut() : Node("Out", {{"in"}}, {}) { value = true; };
 
 bool PinOut::Evaluate() {
+  if (isEvaluating || lastEvaluatedFrame == GlobalFrameCount)
+    return value;
+
+  isEvaluating = true;
   for (const auto &cn : connections) {
     if (cn.inputNode == this && ((Node *)cn.outputNode)->Evaluate()) {
       value = true;
+      lastEvaluatedFrame = GlobalFrameCount;
+      isEvaluating = false;
       return value;
     }
   }
 
   value = false;
+  lastEvaluatedFrame = GlobalFrameCount;
+  isEvaluating = false;
   return value;
 };
 
@@ -30,7 +38,6 @@ void PinOut::Render() {
   ImNodes::Ez::PushStyleColor(ImNodesStyleCol_NodeBorder, borderColor);
 
   if (ImNodes::Ez::BeginNode(this, "", &pos, &selected)) {
-    ImGui::SetWindowFontScale(0.8f);
     ImNodes::Ez::InputSlots(inputSlots.data(), inputSlotCount);
 
     bool signal = Evaluate();
@@ -42,7 +49,6 @@ void PinOut::Render() {
 
     ImNodes::Ez::OutputSlots(outputSlots.data(), outputSlotCount);
     // Connections (PinOut usually has no outgoing connections)
-    ImGui::SetWindowFontScale(1.0f);
     ImNodes::Ez::EndNode();
     ImNodes::Ez::PopStyleColor(7);
   }

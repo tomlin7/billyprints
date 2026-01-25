@@ -8,6 +8,7 @@ public:
   PinIn();
   bool Evaluate() override;
   void Render() override;
-  ImU32 GetColor() const override { return IM_COL32(20, 60, 20, 255); }
+  bool isMomentary = false;
+  ImU32 GetColor() const override { return IM_COL32(40, 40, 45, 255); }
 };
 } // namespace Billyprints

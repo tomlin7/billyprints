@@ -2,16 +2,19 @@
 
 #include "Connection.hpp"
 #include "pch.hpp"
+#include <string>
 
 namespace Billyprints {
 class Node {
 public:
   /// Node title
   const char *title = nullptr;
+  std::string id = "";
   bool selected = false;
   ImVec2 pos{};
   bool value = false;
   uint64_t lastEvaluatedFrame = 0;
+  bool isEvaluating = false;
   static uint64_t GlobalFrameCount;
 
   std::vector<Connection> connections{};
