@@ -1,29 +1,29 @@
 #pragma once
 
-#include "pch.hpp"
 #include "Connection.hpp"
+#include "pch.hpp"
 
 namespace Billyprints {
-    class Node
-    {
-    public:
-        /// Node title
-        const char* title = nullptr;
-        bool selected = false;
-        ImVec2 pos{};
-        bool value = false;
+class Node {
+public:
+  /// Node title
+  const char *title = nullptr;
+  bool selected = false;
+  ImVec2 pos{};
+  bool value = false;
 
-        std::vector<Connection> connections{};
-        std::vector<ImNodes::Ez::SlotInfo> inputSlots{};
-        std::vector<ImNodes::Ez::SlotInfo> outputSlots{};
+  std::vector<Connection> connections{};
+  std::vector<ImNodes::Ez::SlotInfo> inputSlots{};
+  std::vector<ImNodes::Ez::SlotInfo> outputSlots{};
 
-        int inputSlotCount;
-        int outputSlotCount;
+  int inputSlotCount;
+  int outputSlotCount;
 
-        Node(const char* title,
-            std::vector<ImNodes::Ez::SlotInfo>&& _inputSlots,
-            std::vector<ImNodes::Ez::SlotInfo>&& _outputSlots);
-        void DeleteConnection(const Connection& connection);
-        virtual bool Evaluate();
-    };
-}
+  Node(const char *title, std::vector<ImNodes::Ez::SlotInfo> &&_inputSlots,
+       std::vector<ImNodes::Ez::SlotInfo> &&_outputSlots);
+  void DeleteConnection(const Connection &connection);
+  virtual bool Evaluate();
+  virtual void Render();
+  virtual ImU32 GetColor() const;
+};
+} // namespace Billyprints

@@ -37,7 +37,7 @@ public:
   ~CustomGate();
 
   bool Evaluate() override;
-  ImU32 GetColor() const { return definition.color; }
+  ImU32 GetColor() const override { return definition.color; }
 
   // Members to hold the internal state
   std::vector<Node *> internalNodes;

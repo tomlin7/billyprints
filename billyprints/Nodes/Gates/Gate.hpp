@@ -10,5 +10,8 @@ namespace Billyprints {
         Gate(const char* title,
             std::vector<ImNodes::Ez::SlotInfo>&& inputSlots,
             std::vector<ImNodes::Ez::SlotInfo>&& outputSlots);
+
+        virtual void Render() override;
+        virtual ImU32 GetColor() const override;
     };
 }
