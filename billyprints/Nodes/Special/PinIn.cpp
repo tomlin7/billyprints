@@ -1,11 +1,7 @@
 #include "PinIn.hpp"
 
 namespace Billyprints {
-	PinIn::PinIn() : Node("Pin In", {}, { {"out"} }) {
-		value = true;
-	};
+PinIn::PinIn() : Node("In", {}, {{"->"}}) { value = true; };
 
-	bool PinIn::Evaluate() {
-		return value;
-	};
-}
+bool PinIn::Evaluate() { return value; };
+} // namespace Billyprints

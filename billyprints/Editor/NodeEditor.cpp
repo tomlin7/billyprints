@@ -12,36 +12,59 @@
 
 namespace Billyprints {
 inline void NodeEditor::RenderNode(Node *node) {
-  // Glassy Nodes (Semi-transparent)
-  ImU32 titleColor = IM_COL32(30, 30, 35, 180);
+  // Solid Colors (Alpha 255)
+  ImU32 titleColor = IM_COL32(40, 40, 45, 255);
   std::string t = node->title;
-  if (t == "AND")
-    titleColor = IM_COL32(0, 50, 100, 180); // Dark Blue Glass
+
+  // Try to cast to CustomGate to get color
+  if (auto *cg = dynamic_cast<CustomGate *>(node)) {
+    titleColor = cg->GetColor();
+    // Force solid Alpha 255
+    titleColor = (titleColor & 0x00FFFFFF) | 0xFF000000;
+  } else if (t == "AND")
+    titleColor = IM_COL32(10, 30, 60, 255);
   else if (t == "NOT")
-    titleColor = IM_COL32(100, 25, 25, 180); // Dark Red Glass
+    titleColor = IM_COL32(80, 20, 20, 255);
   else if (t == "NAND")
-    titleColor = IM_COL32(60, 0, 110, 180); // Dark Purple Glass
-  else if (t == "Pin In" || t == "PinIn")
-    titleColor = IM_COL32(0, 80, 0, 180); // Dark Green Glass
+    titleColor = IM_COL32(40, 10, 80, 255);
+  else if (t == "In" || t == "In")
+    titleColor = IM_COL32(20, 60, 20, 255);
 
   auto *canvas = ImNodes::GetCurrentCanvas();
-  ImColor originalTitleColor = canvas->Colors[ImNodes::ColNodeBg];
-  ImColor originalTitleColorSelected = canvas->Colors[ImNodes::ColNodeActiveBg];
+  ImColor originalBorderColor = canvas->Colors[ImNodes::ColNodeBorder];
 
-  canvas->Colors[ImNodes::ColNodeBg] = titleColor;
-  canvas->Colors[ImNodes::ColNodeActiveBg] =
-      IM_COL32((titleColor >> 0) & 0xFF, (titleColor >> 8) & 0xFF,
-               (titleColor >> 16) & 0xFF,
-               230); // Brighter alpha when selected
+  // Active Border Logic
+  ImU32 borderColor = IM_COL32(50, 50, 50, 50); // Dim Inactive
+  if (node->Evaluate()) {
+    borderColor = IM_COL32(255, 255, 255, 200); // White/Bright Active
+  }
 
-  if (ImNodes::Ez::BeginNode(node, node->title, &node->pos, &node->selected)) {
-    // ... input slots ...
+  // Single Color Look: Push same color for ALL states to avoid "two colors" or
+  // flashing
+  ImNodes::Ez::PushStyleColor(ImNodesStyleCol_NodeTitleBarBg, titleColor);
+  ImNodes::Ez::PushStyleColor(ImNodesStyleCol_NodeTitleBarBgHovered,
+                              titleColor);
+  ImNodes::Ez::PushStyleColor(ImNodesStyleCol_NodeTitleBarBgActive, titleColor);
+  ImNodes::Ez::PushStyleColor(ImNodesStyleCol_NodeBodyBg, titleColor);
+  ImNodes::Ez::PushStyleColor(ImNodesStyleCol_NodeBodyBgHovered, titleColor);
+  ImNodes::Ez::PushStyleColor(ImNodesStyleCol_NodeBodyBgActive, titleColor);
+  ImNodes::Ez::PushStyleColor(ImNodesStyleCol_NodeBorder, borderColor);
+
+  // Use empty title in BeginNode to skip the separate header row
+  if (ImNodes::Ez::BeginNode(node, "", &node->pos, &node->selected)) {
+    // Compact Design: Smaller font for internals
+    ImGui::SetWindowFontScale(0.8f);
 
     ImNodes::Ez::InputSlots(node->inputSlots.data(),
                             static_cast<int>(node->inputSlots.size()));
 
+    // Center the title vertically/horizontally in the content area
+    float contentX = ImGui::GetCursorPosX();
+    ImGui::TextUnformatted(node->title);
+    ImGui::SameLine();
+
     std::string titleStr = node->title;
-    if (titleStr == "Pin In" || titleStr == "PinIn") {
+    if (titleStr == "In" || titleStr == "In") {
       ImGui::PushStyleColor(ImGuiCol_Button, node->value
                                                  ? ImVec4(0, 0.6f, 0, 1)
                                                  : ImVec4(0.6f, 0, 0, 1));
@@ -49,16 +72,16 @@ inline void NodeEditor::RenderNode(Node *node) {
         node->value = !node->value;
       }
       ImGui::PopStyleColor();
-    } else if (titleStr == "Pin Out" || titleStr == "PinOut") {
+    } else if (titleStr == "Out" || titleStr == "Out") {
       bool signal = node->Evaluate();
       ImGui::PushStyleColor(ImGuiCol_Button, signal
                                                  ? ImVec4(0, 0.8f, 0, 1)
                                                  : ImVec4(0.1f, 0.1f, 0.1f, 1));
       ImGui::Button(signal ? "HIGH" : "LOW", ImVec2(40, 30));
       ImGui::PopStyleColor();
-    } else {
-      ImGui::Text("%d", (Node *)node->Evaluate());
     }
+    // Removed generic value generic label (0/1) as requested.
+
     ImNodes::Ez::OutputSlots(node->outputSlots.data(),
                              static_cast<int>(node->outputSlots.size()));
 
@@ -117,11 +140,9 @@ inline void NodeEditor::RenderNode(Node *node) {
       }
       canvas->Colors[ImNodes::ColConnection] = originalConnectionColor;
     }
+    ImGui::SetWindowFontScale(1.0f);
     ImNodes::Ez::EndNode();
-
-    // Restore node colors
-    canvas->Colors[ImNodes::ColNodeBg] = originalTitleColor;
-    canvas->Colors[ImNodes::ColNodeActiveBg] = originalTitleColorSelected;
+    ImNodes::Ez::PopStyleColor(7);
   }
 }
 
@@ -196,9 +217,9 @@ void NodeEditor::CreateGate() {
     def.nodes.push_back(nd);
 
     std::string titleStr = node->title;
-    if (titleStr == "Input" || titleStr == "Pin In")
+    if (titleStr == "Input" || titleStr == "In")
       def.inputPinIndices.push_back(nd.id);
-    else if (titleStr == "Output" || titleStr == "Pin Out")
+    else if (titleStr == "Output" || titleStr == "Out")
       def.outputPinIndices.push_back(nd.id);
   }
 
@@ -225,6 +246,10 @@ void NodeEditor::CreateGate() {
   }
 
   // Store definition for serialization
+  def.color =
+      IM_COL32((int)(newGateColor[0] * 255), (int)(newGateColor[1] * 255),
+               (int)(newGateColor[2] * 255), 200);
+
   customGateDefinitions.push_back(def);
 
   availableGates.push_back([def]() -> Gate * { return new CustomGate(def); });
@@ -373,6 +398,7 @@ void NodeEditor::Redraw() {
     if (ImGui::BeginPopupModal("CreateGatePopup", NULL,
                                ImGuiWindowFlags_AlwaysAutoResize)) {
       ImGui::InputText("Gate Name", gateName, 128);
+      ImGui::ColorEdit3("Color", newGateColor);
       if (ImGui::Button("Create", ImVec2(120, 0))) {
         debugMsg = "Creating Gate: " + std::string(gateName);
         CreateGate();
@@ -443,6 +469,8 @@ void NodeEditor::Redraw() {
 
   // 2. Glassmorphism Styles
   ImNodes::Ez::PushStyleVar(ImNodesStyleVar_NodeRounding, 8.0f);
+  ImNodes::Ez::PushStyleVar(ImNodesStyleVar_ItemSpacing, ImVec2(4.0f, 2.0f));
+  ImNodes::Ez::PushStyleVar(ImNodesStyleVar_NodeSpacing, ImVec2(4.0f, 4.0f));
 
   // Update rendering colors in RenderNode manually? No, we set them per node
   // locally mostly, but lets set defaults for others
@@ -458,7 +486,7 @@ void NodeEditor::Redraw() {
   RenderContextMenu();
 
   ImNodes::Ez::EndCanvas();
-  ImNodes::Ez::PopStyleVar(1);
+  ImNodes::Ez::PopStyleVar(3);
   ImGui::End();
 }
 
@@ -475,6 +503,9 @@ void NodeEditor::SaveGates(const std::string &filename) {
     size_t nameLen = def.name.size();
     fwrite(&nameLen, sizeof(size_t), 1, f);
     fwrite(def.name.c_str(), 1, nameLen, f);
+
+    // Color
+    fwrite(&def.color, sizeof(ImU32), 1, f);
 
     // Nodes
     size_t nodeCount = def.nodes.size();
@@ -534,6 +565,9 @@ void NodeEditor::LoadGates(const std::string &filename) {
     fread(&nameLen, sizeof(size_t), 1, f);
     def.name.resize(nameLen);
     fread(&def.name[0], 1, nameLen, f);
+
+    // Color
+    fread(&def.color, sizeof(ImU32), 1, f);
 
     // Nodes
     size_t nodeCount = 0;

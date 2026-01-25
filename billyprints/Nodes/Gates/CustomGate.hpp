@@ -28,6 +28,7 @@ struct GateDefinition {
   std::vector<ConnectionDefinition> connections;
   std::vector<int> inputPinIndices;  // IDs of PinIn nodes in 'nodes' vector
   std::vector<int> outputPinIndices; // IDs of PinOut nodes in 'nodes' vector
+  ImU32 color = IM_COL32(50, 50, 50, 200); // Default dark grey
 };
 
 class CustomGate : public Gate {
@@ -36,6 +37,7 @@ public:
   ~CustomGate();
 
   bool Evaluate() override;
+  ImU32 GetColor() const { return definition.color; }
 
   // Members to hold the internal state
   std::vector<Node *> internalNodes;
