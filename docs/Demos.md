@@ -11,16 +11,16 @@ In A @ 100, 100
 In B @ 100, 250
 
 XOR sum_gate @ 300, 100
-AND carry_gate @ 300, 250
+AND carry_gate @ 300, 236
 
 Out Sum @ 500, 100
 Out Carry @ 500, 250
 
-A -> sum_gate.in1
-B -> sum_gate.in2
+A -> sum_gate.in0
+B -> sum_gate.in1
 
-A -> carry_gate.in1
-B -> carry_gate.in2
+A -> carry_gate.in0
+B -> carry_gate.in1
 
 sum_gate -> Sum
 carry_gate -> Carry
@@ -42,10 +42,10 @@ Out Q @ 550, 100
 Out NotQ @ 550, 300
 
 // Cross-coupling feedback loops
-Set -> nor_top.in1
-nor_bottom.out -> nor_top.in2
+Set -> nor_top.in0
+nor_bottom.out -> nor_top.in1
 
-Reset -> nor_bottom.in2
+Reset -> nor_bottom.in0
 nor_top.out -> nor_bottom.in1
 
 // Outputs
@@ -69,19 +69,19 @@ NAND n4 @ 500, 175
 Out Output @ 650, 175
 
 // Initial NAND
-A -> n1.in1
-B -> n1.in2
+A -> n1.in0
+B -> n1.in1
 
 // Second Stage
-A -> n2.in1
-n1.out -> n2.in2
+A -> n2.in0
+n1.out -> n2.in1
 
-n1.out -> n3.in1
-B -> n3.in2
+n1.out -> n3.in0
+B -> n3.in1
 
 // Final Stage
-n2.out -> n4.in1
-n3.out -> n4.in2
+n2.out -> n4.in0
+n3.out -> n4.in1
 
 n4.out -> Output
 ```

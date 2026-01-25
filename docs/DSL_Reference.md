@@ -45,7 +45,7 @@ Connections define how signals flow between nodes.
 - **SourceIdentifier**: The ID of the node sending the signal.
 - **OutputSlot**: The specific output pin (usually `out` for standard gates).
 - **TargetIdentifier**: The ID of the node receiving the signal.
-- **InputSlot**: The specific input pin (e.g., `in1`, `in2` for gates, or `in` for outputs).
+- **InputSlot**: The specific input pin (e.g., `in0`, `in1` for gates, or `in` for outputs).
 
 **Shorthand:**
 If a node has a default input/output (like standard gates), you can omit the slot name.
@@ -59,8 +59,8 @@ If a node has a default input/output (like standard gates), you can omit the slo
 gate1.out -> led1.in
 
 // Connecting specific slots
-sw1.out -> gate1.in1
-sw2.out -> gate1.in2
+sw1.out -> gate1.in0
+sw2.out -> gate1.in1
 
 // Implicit/Shorthand (if supported by context)
 sw1 -> gate1
@@ -84,10 +84,10 @@ The following node types are built-in:
 |------|--------|---------|-------------|
 | `In` | 0 | 1 (`out`) | Interactive entry point (Switch/Button). |
 | `Out` | 1 (`in`) | 0 | Visual indicator (LED). |
-| `AND` | 2 (`in1`, `in2`) | 1 (`out`) | Output is HIGH only if both inputs are HIGH. |
-| `OR` | 2 (`in1`, `in2`) | 1 (`out`) | Output is HIGH if at least one input is HIGH. |
+| `AND` | 2 (`in0`, `in1`) | 1 (`out`) | Output is HIGH only if both inputs are HIGH. |
+| `OR` | 2 (`in0`, `in1`) | 1 (`out`) | Output is HIGH if at least one input is HIGH. |
 | `NOT` | 1 (`in`) | 1 (`out`) | Inverts the input signal. |
-| `NAND`| 2 (`in1`, `in2`) | 1 (`out`) | AND followed by NOT. |
-| `NOR` | 2 (`in1`, `in2`) | 1 (`out`) | OR followed by NOT. |
-| `XOR` | 2 (`in1`, `in2`) | 1 (`out`) | Output is HIGH if inputs are different. |
-| `XNOR`| 2 (`in1`, `in2`) | 1 (`out`) | Output is HIGH if inputs are the same. |
+| `NAND`| 2 (`in0`, `in1`) | 1 (`out`) | AND followed by NOT. |
+| `NOR` | 2 (`in0`, `in1`) | 1 (`out`) | OR followed by NOT. |
+| `XOR` | 2 (`in0`, `in1`) | 1 (`out`) | Output is HIGH if inputs are different. |
+| `XNOR`| 2 (`in0`, `in1`) | 1 (`out`) | Output is HIGH if inputs are the same. |

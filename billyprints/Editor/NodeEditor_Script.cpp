@@ -11,11 +11,34 @@ namespace Billyprints {
 
 void NodeEditor::UpdateScriptFromNodes() {
   std::stringstream ss;
-  std::map<Node *, int> nodeToId;
+  std::map<Node *, std::string> nodeToId;
+  int autoIdCounter = 0;
+
+  // First pass: Assign IDs
   for (int i = 0; i < nodes.size(); ++i) {
-    nodeToId[nodes[i]] = i;
+    if (nodes[i]->id.empty()) {
+      // Find a unique ID
+      while (true) {
+        std::string candidate = "n" + std::to_string(autoIdCounter++);
+        bool clash = false;
+        for (const auto &n : nodes) {
+          if (n->id == candidate) {
+            clash = true;
+            break;
+          }
+        }
+        if (!clash) {
+          nodes[i]->id = candidate;
+          break;
+        }
+      }
+    }
+    nodeToId[nodes[i]] = nodes[i]->id;
+  }
+
+  for (int i = 0; i < nodes.size(); ++i) {
     std::string type = nodes[i]->title;
-    ss << type << " n" << i << " @ " << (int)nodes[i]->pos.x << ", "
+    ss << type << " " << nodes[i]->id << " @ " << (int)nodes[i]->pos.x << ", "
        << (int)nodes[i]->pos.y;
 
     if (type == "In") {
@@ -30,10 +53,9 @@ void NodeEditor::UpdateScriptFromNodes() {
   for (auto *node : nodes) {
     for (const auto &conn : node->connections) {
       if (conn.outputNode == node) {
-        ss << "n" << nodeToId[(Node *)conn.outputNode] << "." << conn.outputSlot
-           << " -> "
-           << "n" << nodeToId[(Node *)conn.inputNode] << "." << conn.inputSlot
-           << "\n";
+        ss << nodeToId[(Node *)conn.outputNode] << "." << conn.outputSlot
+           << " -> " << nodeToId[(Node *)conn.inputNode] << "."
+           << conn.inputSlot << "\n";
       }
     }
   }
@@ -145,6 +167,7 @@ void NodeEditor::UpdateNodesFromScript() {
         Node *n = CreateNodeByType(type);
         if (n) {
           n->pos = {(float)x, (float)y};
+          n->id = id;
           if (type == "In" && line.find("momentary") != std::string::npos) {
             ((PinIn *)n)->isMomentary = true;
           }

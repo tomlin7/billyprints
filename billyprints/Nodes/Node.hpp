@@ -2,12 +2,14 @@
 
 #include "Connection.hpp"
 #include "pch.hpp"
+#include <string>
 
 namespace Billyprints {
 class Node {
 public:
   /// Node title
   const char *title = nullptr;
+  std::string id = "";
   bool selected = false;
   ImVec2 pos{};
   bool value = false;

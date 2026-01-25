@@ -29,8 +29,8 @@ Now we need to tell the signals where to go. We want `switch1` and `switch2` to 
 Add these lines to the bottom of your script:
 
 ```
-switch1.out -> logic.in1
-switch2.out -> logic.in2
+switch1.out -> logic.in0
+switch2.out -> logic.in1
 logic.out -> led.in
 ```
 
