@@ -4,6 +4,8 @@
 ## Dear ImGui artifacts
 imgui.ini
 
+.cache
+
 ## General build artifacts
 *.o
 *.obj
@@ -25,3 +27,8 @@ ipch
 *.suo
 *.VC.db
 *.VC.VC.opendb
+
+
+
+bin/
+bin-int/

@@ -1,19 +1,50 @@
 #include "PinOut.hpp"
 
 namespace Billyprints {
-	PinOut::PinOut() : Node("Pin Out", { {"in"} }, {}) {
-		value = true;
-	};
+PinOut::PinOut() : Node("Out", {{">"}}, {}) { value = true; };
 
-	bool PinOut::Evaluate() {
-		for (const auto& cn : connections) {
-			if (cn.inputNode == this && ((Node*)cn.outputNode)->value) {
-				value = true;
-				return value;
-			}
-		}
+bool PinOut::Evaluate() {
+  for (const auto &cn : connections) {
+    if (cn.inputNode == this && ((Node *)cn.outputNode)->Evaluate()) {
+      value = true;
+      return value;
+    }
+  }
 
-		value = false;
-		return value;
-	};
+  value = false;
+  return value;
+};
+
+void PinOut::Render() {
+  ImU32 color = GetColor();
+  color = (color & 0x00FFFFFF) | 0xFF000000;
+  ImU32 borderColor =
+      Evaluate() ? IM_COL32(255, 255, 255, 200) : IM_COL32(50, 50, 50, 50);
+
+  ImNodes::Ez::PushStyleColor(ImNodesStyleCol_NodeTitleBarBg, color);
+  ImNodes::Ez::PushStyleColor(ImNodesStyleCol_NodeTitleBarBgHovered, color);
+  ImNodes::Ez::PushStyleColor(ImNodesStyleCol_NodeTitleBarBgActive, color);
+  ImNodes::Ez::PushStyleColor(ImNodesStyleCol_NodeBodyBg, color);
+  ImNodes::Ez::PushStyleColor(ImNodesStyleCol_NodeBodyBgHovered, color);
+  ImNodes::Ez::PushStyleColor(ImNodesStyleCol_NodeBodyBgActive, color);
+  ImNodes::Ez::PushStyleColor(ImNodesStyleCol_NodeBorder, borderColor);
+
+  if (ImNodes::Ez::BeginNode(this, "", &pos, &selected)) {
+    ImGui::SetWindowFontScale(0.8f);
+    ImNodes::Ez::InputSlots(inputSlots.data(), inputSlotCount);
+
+    bool signal = Evaluate();
+    ImGui::PushStyleColor(ImGuiCol_Button, signal
+                                               ? ImVec4(0, 0.8f, 0, 1)
+                                               : ImVec4(0.1f, 0.1f, 0.1f, 1));
+    ImGui::Button(signal ? "HIGH" : "LOW", ImVec2(40, 30));
+    ImGui::PopStyleColor();
+
+    ImNodes::Ez::OutputSlots(outputSlots.data(), outputSlotCount);
+    // Connections (PinOut usually has no outgoing connections)
+    ImGui::SetWindowFontScale(1.0f);
+    ImNodes::Ez::EndNode();
+    ImNodes::Ez::PopStyleColor(7);
+  }
 }
+} // namespace Billyprints

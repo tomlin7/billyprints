@@ -1,23 +1,23 @@
-#include "NOT.hpp"
+#include "OR.hpp"
 
 namespace Billyprints {
-NOT::NOT() : Gate("NOT", {{"in"}}, {{"out"}}) {}
+OR::OR() : Gate("OR", {{"a"}, {"b"}}, {{"out"}}) {}
 
-bool NOT::NOT_F(const std::vector<bool> &input, const int &) {
+bool OR::OR_F(const std::vector<bool> &input, const int &) {
+  bool current = false;
   for (const bool &pin : input)
-    if (!pin)
-      return !pin;
+    current |= pin;
 
-  return false;
+  return current;
 }
 
-bool NOT::Evaluate() {
+bool OR::Evaluate() {
   std::vector<bool> input;
   for (const auto &cn : connections)
     if (cn.inputNode == this)
       input.push_back(((Node *)cn.outputNode)->Evaluate());
 
-  value = NOT_F(input, inputSlotCount);
+  value = OR_F(input, outputSlotCount);
   return value;
 }
 } // namespace Billyprints
