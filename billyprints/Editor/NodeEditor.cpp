@@ -52,7 +52,15 @@ void NodeEditor::UpdateNodesFromScript() {
   lastParsedScript = currentScript;
   scriptError = "";
 
-  // Clear nodes
+  auto trim = [](std::string &s) {
+    if (s.empty())
+      return;
+    s.erase(0, s.find_first_not_of(" \t\n\r"));
+    size_t last = s.find_last_not_of(" \t\n\r");
+    if (last != std::string::npos)
+      s.erase(last + 1);
+  };
+
   for (auto *n : nodes)
     delete n;
   nodes.clear();
@@ -64,50 +72,58 @@ void NodeEditor::UpdateNodesFromScript() {
 
   while (std::getline(ss, line)) {
     lineNum++;
-    if (line.empty() || line[0] == '/')
+    trim(line);
+    if (line.empty() || (line.size() >= 2 && line[0] == '/' && line[1] == '/'))
       continue;
 
     try {
       if (line.find("->") != std::string::npos) {
         size_t arrowPos = line.find("->");
-        std::string outPart = line.substr(0, arrowPos);
-        std::string inPart = line.substr(arrowPos + 2);
+        std::string left = line.substr(0, arrowPos);
+        std::string right = line.substr(arrowPos + 2);
+        trim(left);
+        trim(right);
 
         auto parseSlot =
-            [](std::string s,
-               bool isOutput) -> std::pair<std::string, std::string> {
-          s.erase(0, s.find_first_not_of(" \t\n\r"));
-          s.erase(s.find_last_not_of(" \t\n\r") + 1);
+            [&](std::string s,
+                bool isOutput) -> std::pair<std::string, std::string> {
           size_t dot = s.find('.');
-          if (dot == std::string::npos)
+          if (dot == std::string::npos) {
             return {s, isOutput ? "out" : "in"};
-          return {s.substr(0, dot), s.substr(dot + 1)};
+          }
+          std::string nodePart = s.substr(0, dot);
+          std::string slotPart = s.substr(dot + 1);
+          trim(nodePart);
+          trim(slotPart);
+          return {nodePart, slotPart};
         };
 
-        auto outS = parseSlot(outPart, true);
-        auto inS = parseSlot(inPart, false);
+        auto outS = parseSlot(left, true);
+        auto inS = parseSlot(right, false);
+
+        if (outS.first.empty() || inS.first.empty() || outS.second.empty() ||
+            inS.second.empty())
+          continue;
 
         if (idToNode.count(outS.first) && idToNode.count(inS.first)) {
           Node *outNode = idToNode[outS.first];
           Node *inNode = idToNode[inS.first];
 
-          // Check if slots actually exist (or are the special 'in'/'out' for
-          // pins)
           bool outSlotValid = false;
-          if (outS.second == "out")
+          if (outS.second == "out" && std::string(outNode->title) == "In")
             outSlotValid = true;
           else {
             for (int i = 0; i < outNode->outputSlotCount; ++i)
-              if (outNode->outputSlots[i].title == outS.second)
+              if (std::string(outNode->outputSlots[i].title) == outS.second)
                 outSlotValid = true;
           }
 
           bool inSlotValid = false;
-          if (inS.second == "in")
+          if (inS.second == "in" && std::string(inNode->title) == "Out")
             inSlotValid = true;
           else {
             for (int i = 0; i < inNode->inputSlotCount; ++i)
-              if (inNode->inputSlots[i].title == inS.second)
+              if (std::string(inNode->inputSlots[i].title) == inS.second)
                 inSlotValid = true;
           }
 
@@ -117,13 +133,9 @@ void NodeEditor::UpdateNodesFromScript() {
             conn.outputSlot = outS.second;
             conn.inputNode = inNode;
             conn.inputSlot = inS.second;
-
-            ((Node *)conn.outputNode)->connections.push_back(conn);
-            ((Node *)conn.inputNode)->connections.push_back(conn);
+            outNode->connections.push_back(conn);
+            inNode->connections.push_back(conn);
           }
-        } else {
-          scriptError += "Line " + std::to_string(lineNum) +
-                         ": Node not found for connection\n";
         }
       } else if (line.find("@") != std::string::npos) {
         std::stringstream lss(line);
@@ -145,13 +157,116 @@ void NodeEditor::UpdateNodesFromScript() {
           nodes.push_back(n);
           idToNode[id] = n;
         } else {
-          scriptError += "Line " + std::to_string(lineNum) +
-                         ": Unknown node type " + type + "\n";
+          scriptError += "Line " + std::to_string(lineNum) + ": Unknown type " +
+                         type + "\n";
         }
       }
     } catch (...) {
       scriptError += "Line " + std::to_string(lineNum) + ": Unexpected error\n";
     }
+  }
+}
+
+void NodeEditor::RenderDock() {
+  float dockHeight = 84.0f;
+  float iconSize = 48.0f;
+  float iconPadding = 20.0f;
+
+  ImGuiViewport *viewport = ImGui::GetMainViewport();
+  ImVec2 workPos = viewport->WorkPos;
+  ImVec2 workSize = viewport->WorkSize;
+
+  size_t totalIcons = availableNodes.size() + availableGates.size();
+  float totalWidth = totalIcons * (iconSize + iconPadding) + iconPadding;
+
+  ImVec2 dockPos = ImVec2(workPos.x + (workSize.x - totalWidth) * 0.5f,
+                          workPos.y + workSize.y - dockHeight - 30.0f);
+  ImVec2 dockSize = ImVec2(totalWidth, dockHeight);
+
+  // Use Foreground draw list to overlay everything
+  ImDrawList *drawList = ImGui::GetForegroundDrawList();
+
+  // Background Shadow/Glow
+  drawList->AddRectFilled(
+      ImVec2(dockPos.x - 5, dockPos.y - 5),
+      ImVec2(dockPos.x + dockSize.x + 5, dockPos.y + dockSize.y + 5),
+      IM_COL32(0, 0, 0, 60), 16.0f);
+
+  // Glassmorphic Body
+  drawList->AddRectFilled(
+      dockPos, ImVec2(dockPos.x + dockSize.x, dockPos.y + dockSize.y),
+      IM_COL32(30, 35, 45, 180), 14.0f);
+  drawList->AddRect(dockPos,
+                    ImVec2(dockPos.x + dockSize.x, dockPos.y + dockSize.y),
+                    IM_COL32(255, 255, 255, 40), 14.0f, 0, 2.0f);
+
+  float xOffset = iconPadding;
+  ImVec2 mousePos = ImGui::GetMousePos();
+
+  auto renderIcon = [&](const char *label, std::function<Node *()> factory,
+                        ImU32 color) {
+    ImVec2 center = ImVec2(dockPos.x + xOffset + iconSize * 0.5f,
+                           dockPos.y + dockHeight * 0.5f);
+    bool hovered = (mousePos.x >= dockPos.x + xOffset &&
+                    mousePos.x <= dockPos.x + xOffset + iconSize &&
+                    mousePos.y >= dockPos.y + (dockHeight - iconSize) * 0.5f &&
+                    mousePos.y <= dockPos.y + (dockHeight + iconSize) * 0.5f);
+
+    float scale = hovered ? 1.25f : 1.0f;
+    float lift = hovered ? -12.0f : 0.0f;
+    float currentSize = iconSize * scale;
+
+    ImVec2 animatedCenter = ImVec2(center.x, center.y + lift);
+
+    // Icon Circle
+    drawList->AddCircleFilled(animatedCenter, currentSize * 0.5f,
+                              (color & 0x00FFFFFF) | 0xDD000000, 32);
+    drawList->AddCircle(animatedCenter, currentSize * 0.5f,
+                        IM_COL32(255, 255, 255, 80), 32, 1.5f);
+
+    // Symbol/Label in center
+    ImGui::PushFont(ImGui::GetIO().Fonts->Fonts[0]); // Use default font
+    std::string shortLabel = label;
+    if (shortLabel.size() > 4)
+      shortLabel = shortLabel.substr(0, 3) + ".";
+
+    float fontSize = 14.0f * scale;
+    ImVec2 textSize = ImGui::CalcTextSize(shortLabel.c_str());
+    drawList->AddText(
+        NULL, fontSize,
+        ImVec2(animatedCenter.x -
+                   textSize.x * 0.5f * (fontSize / ImGui::GetFontSize()),
+               animatedCenter.y -
+                   textSize.y * 0.5f * (fontSize / ImGui::GetFontSize())),
+        IM_COL32(255, 255, 255, 255), shortLabel.c_str());
+    ImGui::PopFont();
+
+    // Full Label Tooltip or hint
+    if (hovered) {
+      ImGui::BeginTooltip();
+      ImGui::Text("%s", label);
+      ImGui::EndTooltip();
+
+      if (ImGui::IsMouseClicked(0)) {
+        Node *newNode = factory();
+        nodes.push_back(newNode);
+        ImNodes::AutoPositionNode(newNode);
+      }
+    }
+
+    xOffset += iconSize + iconPadding;
+  };
+
+  for (auto &f : availableNodes) {
+    Node *tmp = f();
+    renderIcon(tmp->title, f, tmp->GetColor());
+    delete tmp;
+  }
+
+  for (auto &f : availableGates) {
+    Node *tmp = f();
+    renderIcon(tmp->title, f, tmp->GetColor());
+    delete tmp;
   }
 }
 
@@ -447,6 +562,7 @@ void NodeEditor::Redraw() {
   }
 
   ImNodes::Ez::BeginCanvas();
+  RenderDock();
 
   // --- Cyberpunk Visuals Start ---
 

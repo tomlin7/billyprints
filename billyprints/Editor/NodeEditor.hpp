@@ -16,6 +16,7 @@ class NodeEditor {
   void RenderNode(Node *node);
   void RenderNodes();
   void RenderContextMenu();
+  void RenderDock();
   void CreateGate();
 
   std::vector<GateDefinition> customGateDefinitions;
