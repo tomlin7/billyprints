@@ -1,6 +1,7 @@
 #include "Node.hpp"
 
 namespace Billyprints {
+uint64_t Node::GlobalFrameCount = 0;
 Node::Node(const char *_title, std::vector<ImNodes::Ez::SlotInfo> &&_inputSlots,
            std::vector<ImNodes::Ez::SlotInfo> &&_outputSlots) {
   title = _title;

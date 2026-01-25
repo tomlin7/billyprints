@@ -11,6 +11,8 @@ public:
   bool selected = false;
   ImVec2 pos{};
   bool value = false;
+  uint64_t lastEvaluatedFrame = 0;
+  static uint64_t GlobalFrameCount;
 
   std::vector<Connection> connections{};
   std::vector<ImNodes::Ez::SlotInfo> inputSlots{};

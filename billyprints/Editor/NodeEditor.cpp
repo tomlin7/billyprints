@@ -124,6 +124,7 @@ void NodeEditor::CreateGate() {
 }
 
 void NodeEditor::Redraw() {
+  Node::GlobalFrameCount++;
   auto context = ImNodes::Ez::CreateContext();
   IM_UNUSED(context);
 
