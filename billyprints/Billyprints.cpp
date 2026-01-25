@@ -77,10 +77,6 @@ int Billyprints::Mainloop() {
     ImGui::NewFrame();
 
     // Standard Window Rendering
-    const ImGuiViewport *viewport = ImGui::GetMainViewport();
-    ImGui::SetNextWindowPos(viewport->WorkPos);
-    ImGui::SetNextWindowSize(viewport->WorkSize);
-
     // No custom dragging/resizing logic needed for native window
 
     nodeEditor.Redraw();

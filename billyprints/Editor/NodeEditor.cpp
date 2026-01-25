@@ -385,23 +385,7 @@ void NodeEditor::Redraw() {
   auto context = ImNodes::Ez::CreateContext();
   IM_UNUSED(context);
 
-  // Main Menu Bar
-  if (ImGui::BeginMainMenuBar()) {
-    if (ImGui::BeginMenu("File")) {
-      if (ImGui::MenuItem("Save Custom Gates...")) {
-        openSaveGatePopup = true;
-      }
-      if (ImGui::MenuItem("Load Custom Gates...")) {
-        openLoadGatePopup = true;
-      }
-      ImGui::Separator();
-      if (ImGui::MenuItem("Exit")) {
-        exit(0);
-      }
-      ImGui::EndMenu();
-    }
-    ImGui::EndMainMenuBar();
-  }
+  // --- REMOVED REDUNDANT MENU BAR BLOCK ---
 
   // File Picker Helper
   auto RenderFilePicker = [&]() {
@@ -490,17 +474,31 @@ void NodeEditor::Redraw() {
     ImGui::EndPopup();
   }
 
+  ImGuiViewport *viewport = ImGui::GetMainViewport();
+  ImGui::SetNextWindowPos(viewport->WorkPos);
+  ImGui::SetNextWindowSize(viewport->WorkSize);
+
   ImGuiWindowFlags window_flags =
       ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize |
-      ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse;
+      ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse |
+      ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse |
+      ImGuiWindowFlags_MenuBar;
 
   if (ImGui::Begin("Billyprints", NULL, window_flags)) {
-    if (ImGui::BeginMainMenuBar()) {
+    if (ImGui::BeginMenuBar()) {
       if (ImGui::BeginMenu("File")) {
         if (ImGui::MenuItem("Open..", "Ctrl+O")) {
         }
         if (ImGui::MenuItem("Save", "Ctrl+S")) {
         }
+        ImGui::Separator();
+        if (ImGui::MenuItem("Save Custom Gates...")) {
+          openSaveGatePopup = true;
+        }
+        if (ImGui::MenuItem("Load Custom Gates...")) {
+          openLoadGatePopup = true;
+        }
+        ImGui::Separator();
         if (ImGui::MenuItem("Create Gate..")) {
           openCreateGatePopup = true;
         }
@@ -517,7 +515,7 @@ void NodeEditor::Redraw() {
         ImGui::MenuItem("Scene Script", NULL, &showScriptEditor);
         ImGui::EndMenu();
       }
-      ImGui::EndMainMenuBar();
+      ImGui::EndMenuBar();
     }
 
     if (openCreateGatePopup) {
@@ -540,15 +538,6 @@ void NodeEditor::Redraw() {
         ImGui::CloseCurrentPopup();
       }
       ImGui::EndPopup();
-    }
-  }
-
-  if (showScriptEditor) {
-    ImGui::Columns(2, "EditorSplit", true);
-    static bool setColumnWidth = true;
-    if (setColumnWidth) {
-      ImGui::SetColumnWidth(0, ImGui::GetWindowWidth() - 400);
-      setColumnWidth = false;
     }
   }
 
