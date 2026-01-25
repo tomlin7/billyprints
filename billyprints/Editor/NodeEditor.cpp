@@ -80,14 +80,39 @@ void NodeEditor::UpdateNodesFromScript() {
         auto inS = parseSlot(inPart, false);
 
         if (idToNode.count(outS.first) && idToNode.count(inS.first)) {
-          Connection conn;
-          conn.outputNode = idToNode[outS.first];
-          conn.outputSlot = outS.second;
-          conn.inputNode = idToNode[inS.first];
-          conn.inputSlot = inS.second;
+          Node *outNode = idToNode[outS.first];
+          Node *inNode = idToNode[inS.first];
 
-          ((Node *)conn.outputNode)->connections.push_back(conn);
-          ((Node *)conn.inputNode)->connections.push_back(conn);
+          // Check if slots actually exist (or are the special 'in'/'out' for
+          // pins)
+          bool outSlotValid = false;
+          if (outS.second == "out")
+            outSlotValid = true;
+          else {
+            for (int i = 0; i < outNode->outputSlotCount; ++i)
+              if (outNode->outputSlots[i].title == outS.second)
+                outSlotValid = true;
+          }
+
+          bool inSlotValid = false;
+          if (inS.second == "in")
+            inSlotValid = true;
+          else {
+            for (int i = 0; i < inNode->inputSlotCount; ++i)
+              if (inNode->inputSlots[i].title == inS.second)
+                inSlotValid = true;
+          }
+
+          if (outSlotValid && inSlotValid) {
+            Connection conn;
+            conn.outputNode = outNode;
+            conn.outputSlot = outS.second;
+            conn.inputNode = inNode;
+            conn.inputSlot = inS.second;
+
+            ((Node *)conn.outputNode)->connections.push_back(conn);
+            ((Node *)conn.inputNode)->connections.push_back(conn);
+          }
         } else {
           scriptError += "Line " + std::to_string(lineNum) +
                          ": Node not found for connection\n";
@@ -506,22 +531,22 @@ void NodeEditor::Redraw() {
     }
 
     static char scriptBuf[8192];
-    memset(scriptBuf, 0, 8192);
-    strncpy(scriptBuf, currentScript.c_str(), 8191);
+    static bool bufferInitialized = false;
+    if (!scriptActive || !bufferInitialized) {
+      strncpy(scriptBuf, currentScript.c_str(), 8191);
+      bufferInitialized = true;
+    }
 
     ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 5.0f);
     if (ImGui::InputTextMultiline(
             "##script", scriptBuf, 8192,
             ImVec2(-1, -ImGui::GetTextLineHeightWithSpacing() * 8))) {
       currentScript = scriptBuf;
+      UpdateNodesFromScript();
     }
     ImGui::PopStyleVar();
 
     scriptActive = ImGui::IsItemActive();
-
-    if (scriptActive) {
-      UpdateNodesFromScript();
-    }
 
     if (!scriptError.empty()) {
       ImGui::Separator();
