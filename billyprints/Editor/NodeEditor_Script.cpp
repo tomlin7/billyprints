@@ -10,39 +10,42 @@
 namespace Billyprints {
 
 void NodeEditor::UpdateScriptFromNodes() {
+  EditorTab *tab = GetActiveTab();
+  if (!tab)
+    return;
+
   std::stringstream ss;
   std::map<Node *, std::string> nodeToId;
-  int autoIdCounter = 0;
 
   // First pass: Assign IDs
-  for (int i = 0; i < nodes.size(); ++i) {
-    if (nodes[i]->id.empty()) {
+  for (int i = 0; i < tab->nodes.size(); ++i) {
+    if (tab->nodes[i]->id.empty()) {
       // Find a unique ID
       while (true) {
-        std::string candidate = "n" + std::to_string(autoIdCounter++);
+        std::string candidate = "n" + std::to_string(tab->autoIdCounter++);
         bool clash = false;
-        for (const auto &n : nodes) {
+        for (const auto &n : tab->nodes) {
           if (n->id == candidate) {
             clash = true;
             break;
           }
         }
         if (!clash) {
-          nodes[i]->id = candidate;
+          tab->nodes[i]->id = candidate;
           break;
         }
       }
     }
-    nodeToId[nodes[i]] = nodes[i]->id;
+    nodeToId[tab->nodes[i]] = tab->nodes[i]->id;
   }
 
-  for (int i = 0; i < nodes.size(); ++i) {
-    std::string type = nodes[i]->title;
-    ss << type << " " << nodes[i]->id << " @ " << (int)nodes[i]->pos.x << ", "
-       << (int)nodes[i]->pos.y;
+  for (int i = 0; i < tab->nodes.size(); ++i) {
+    std::string type = tab->nodes[i]->title;
+    ss << type << " " << tab->nodes[i]->id << " @ " << (int)tab->nodes[i]->pos.x
+       << ", " << (int)tab->nodes[i]->pos.y;
 
     if (type == "In") {
-      PinIn *pin = (PinIn *)nodes[i];
+      PinIn *pin = (PinIn *)tab->nodes[i];
       if (pin->isMomentary)
         ss << " momentary";
     }
@@ -50,7 +53,7 @@ void NodeEditor::UpdateScriptFromNodes() {
     ss << "\n";
   }
   ss << "\n";
-  for (auto *node : nodes) {
+  for (auto *node : tab->nodes) {
     for (const auto &conn : node->connections) {
       if (conn.outputNode == node) {
         ss << nodeToId[(Node *)conn.outputNode] << "." << conn.outputSlot
@@ -59,14 +62,18 @@ void NodeEditor::UpdateScriptFromNodes() {
       }
     }
   }
-  currentScript = ss.str();
+  tab->currentScript = ss.str();
 }
 
 void NodeEditor::UpdateNodesFromScript() {
-  if (currentScript == lastParsedScript)
+  EditorTab *tab = GetActiveTab();
+  if (!tab)
     return;
-  lastParsedScript = currentScript;
-  scriptError = "";
+
+  if (tab->currentScript == tab->lastParsedScript)
+    return;
+  tab->lastParsedScript = tab->currentScript;
+  tab->scriptError = "";
 
   auto trim = [](std::string &s) {
     if (s.empty())
@@ -77,11 +84,11 @@ void NodeEditor::UpdateNodesFromScript() {
       s.erase(last + 1);
   };
 
-  for (auto *n : nodes)
+  for (auto *n : tab->nodes)
     delete n;
-  nodes.clear();
+  tab->nodes.clear();
 
-  std::stringstream ss(currentScript);
+  std::stringstream ss(tab->currentScript);
   std::string line;
   std::map<std::string, Node *> idToNode;
   int lineNum = 0;
@@ -159,7 +166,7 @@ void NodeEditor::UpdateNodesFromScript() {
         int x, y;
         char comma;
         if (!(lss >> type >> id >> at >> x >> comma >> y)) {
-          scriptError +=
+          tab->scriptError +=
               "Line " + std::to_string(lineNum) + ": Invalid node format\n";
           continue;
         }
@@ -171,15 +178,16 @@ void NodeEditor::UpdateNodesFromScript() {
           if (type == "In" && line.find("momentary") != std::string::npos) {
             ((PinIn *)n)->isMomentary = true;
           }
-          nodes.push_back(n);
+          tab->nodes.push_back(n);
           idToNode[id] = n;
         } else {
-          scriptError += "Line " + std::to_string(lineNum) + ": Unknown type " +
-                         type + "\n";
+          tab->scriptError += "Line " + std::to_string(lineNum) +
+                              ": Unknown type " + type + "\n";
         }
       }
     } catch (...) {
-      scriptError += "Line " + std::to_string(lineNum) + ": Unexpected error\n";
+      tab->scriptError +=
+          "Line " + std::to_string(lineNum) + ": Unexpected error\n";
     }
   }
 }

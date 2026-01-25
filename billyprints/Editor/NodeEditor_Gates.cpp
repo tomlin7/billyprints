@@ -10,6 +10,10 @@
 namespace Billyprints {
 
 void NodeEditor::CreateGate() {
+  EditorTab *tab = GetActiveTab();
+  if (!tab)
+    return;
+
   GateDefinition def;
   def.name = std::string(gateName);
 
@@ -17,7 +21,7 @@ void NodeEditor::CreateGate() {
   int idCounter = 0;
 
   // 1. Collect Nodes
-  for (auto *node : nodes) {
+  for (auto *node : tab->nodes) {
     NodeDefinition nd;
     nd.id = idCounter++;
     nodePtrToId[node] = nd.id;
@@ -35,7 +39,7 @@ void NodeEditor::CreateGate() {
   }
 
   // 2. Collect Connections
-  for (auto *node : nodes) {
+  for (auto *node : tab->nodes) {
     for (const auto &conn : node->connections) {
       if (conn.outputNode == node) {
         ConnectionDefinition cd;

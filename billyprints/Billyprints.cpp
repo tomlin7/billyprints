@@ -8,10 +8,13 @@ void Billyprints::glfw_error_callback(int error, const char *description) {
 Billyprints::Billyprints() {}
 
 int Billyprints::Mainloop() {
+  printf("Starting Billyprints...\n");
   // Setup window
   glfwSetErrorCallback(glfw_error_callback);
-  if (!glfwInit())
+  if (!glfwInit()) {
+    printf("Failed to init GLFW\n");
     return 1;
+  }
 
   // GL 3.0 + GLSL 130
   const char *glsl_version = "#version 130";
@@ -23,8 +26,10 @@ int Billyprints::Mainloop() {
 
   // Create window with graphics context
   GLFWwindow *window = glfwCreateWindow(1280, 720, "Billyprints", NULL, NULL);
-  if (window == NULL)
+  if (window == NULL) {
+    printf("Failed to create window\n");
     return 1;
+  }
   glfwMakeContextCurrent(window);
   glfwSwapInterval(1); // Enable vsync
 
@@ -33,6 +38,8 @@ int Billyprints::Mainloop() {
   ImGui::CreateContext();
   ImGuiIO &io = ImGui::GetIO();
   (void)io;
+
+  printf("ImGui Context Created\n");
 
   // Setup style
   // Setup style
@@ -46,52 +53,50 @@ int Billyprints::Mainloop() {
   style.FramePadding = ImVec2(10, 6);
   style.WindowPadding = ImVec2(10, 10);
   style.ItemSpacing = ImVec2(8, 8);
-
-  ImVec4 *colors = style.Colors;
-  colors[ImGuiCol_WindowBg] = ImVec4(0.12f, 0.12f, 0.14f, 1.00f);
-  colors[ImGuiCol_Header] = ImVec4(0.20f, 0.20f, 0.22f, 1.00f);
-  colors[ImGuiCol_HeaderHovered] = ImVec4(0.25f, 0.25f, 0.27f, 1.00f);
-  colors[ImGuiCol_HeaderActive] = ImVec4(0.30f, 0.30f, 0.32f, 1.00f);
-  colors[ImGuiCol_Button] = ImVec4(0.20f, 0.20f, 0.22f, 1.00f);
-  colors[ImGuiCol_ButtonHovered] = ImVec4(0.25f, 0.25f, 0.27f, 1.00f);
-  colors[ImGuiCol_ButtonActive] = ImVec4(0.30f, 0.30f, 0.32f, 1.00f);
-  colors[ImGuiCol_FrameBg] = ImVec4(0.20f, 0.20f, 0.22f, 1.00f);
-  colors[ImGuiCol_TitleBg] = ImVec4(0.12f, 0.12f, 0.14f, 1.00f);
-  colors[ImGuiCol_TitleBgActive] = ImVec4(0.12f, 0.12f, 0.14f, 1.00f);
+  style.Colors[ImGuiCol_WindowBg] = ImVec4(0.12f, 0.12f, 0.14f, 1.00f);
 
   // Setup Platform/Renderer backends
   ImGui_ImplGlfw_InitForOpenGL(window, true);
   ImGui_ImplOpenGL3_Init(glsl_version);
+  printf("Backends Initialized\n");
 
   ImVec4 clear_color = ImVec4(0.00f, 0.00f, 0.00f, 1.00f);
 
-  NodeEditor nodeEditor;
+  try {
+    printf("Creating NodeEditor...\n");
+    NodeEditor nodeEditor;
+    printf("NodeEditor Created\n");
 
-  while (!glfwWindowShouldClose(window)) {
-    // Poll and handle events (inputs, window resize, etc.)
-    glfwPollEvents();
+    while (!glfwWindowShouldClose(window)) {
+      // Poll and handle events (inputs, window resize, etc.)
+      glfwPollEvents();
 
-    // Start the Dear ImGui frame
-    ImGui_ImplOpenGL3_NewFrame();
-    ImGui_ImplGlfw_NewFrame();
-    ImGui::NewFrame();
+      // Start the Dear ImGui frame
+      ImGui_ImplOpenGL3_NewFrame();
+      ImGui_ImplGlfw_NewFrame();
+      ImGui::NewFrame();
 
-    // Standard Window Rendering
-    // No custom dragging/resizing logic needed for native window
+      // Standard Window Rendering
+      // No custom dragging/resizing logic needed for native window
 
-    nodeEditor.Redraw();
+      nodeEditor.Redraw();
 
-    // Rendering
-    ImGui::Render();
-    int display_w, display_h;
-    glfwGetFramebufferSize(window, &display_w, &display_h);
-    glViewport(0, 0, display_w, display_h);
-    glClearColor(clear_color.x * clear_color.w, clear_color.y * clear_color.w,
-                 clear_color.z * clear_color.w, clear_color.w);
-    glClear(GL_COLOR_BUFFER_BIT);
-    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+      // Rendering
+      ImGui::Render();
+      int display_w, display_h;
+      glfwGetFramebufferSize(window, &display_w, &display_h);
+      glViewport(0, 0, display_w, display_h);
+      glClearColor(clear_color.x * clear_color.w, clear_color.y * clear_color.w,
+                   clear_color.z * clear_color.w, clear_color.w);
+      glClear(GL_COLOR_BUFFER_BIT);
+      ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
-    glfwSwapBuffers(window);
+      glfwSwapBuffers(window);
+    }
+  } catch (const std::exception &e) {
+    printf("Crash exception: %s\n", e.what());
+  } catch (...) {
+    printf("Crash unknown exception\n");
   }
 
   // Cleanup
@@ -102,6 +107,7 @@ int Billyprints::Mainloop() {
   glfwDestroyWindow(window);
   glfwTerminate();
 
+  printf("Exiting cleanly\n");
   return 0;
 }
 } // namespace Billyprints

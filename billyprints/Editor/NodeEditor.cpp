@@ -87,8 +87,11 @@ void NodeEditor::RenderDock() {
 
       if (ImGui::IsMouseClicked(0)) {
         Node *newNode = factory();
-        nodes.push_back(newNode);
-        ImNodes::AutoPositionNode(newNode);
+        EditorTab *tab = GetActiveTab();
+        if (tab) {
+          tab->nodes.push_back(newNode);
+          ImNodes::AutoPositionNode(newNode);
+        }
       }
     }
 
@@ -109,10 +112,12 @@ void NodeEditor::RenderDock() {
 }
 
 inline void NodeEditor::RenderNodes() {
-  for (auto it = nodes.begin(); it != nodes.end();) {
-    Node *node = *it;
+  EditorTab *tab = GetActiveTab();
+  if (!tab)
+    return;
 
-    RenderNode(node);
+  for (auto it = tab->nodes.begin(); it != tab->nodes.end();) {
+    Node *node = *it;
 
     if (node->selected && ImGui::IsKeyPressedMap(ImGuiKey_Delete) &&
         ImGui::IsWindowFocused()) {
@@ -126,9 +131,32 @@ inline void NodeEditor::RenderNodes() {
       node->connections.clear();
 
       delete node;
-      it = nodes.erase(it);
-    } else
+      it = tab->nodes.erase(it);
+    } else {
+      RenderNode(node);
       ++it;
+    }
+  }
+}
+
+void NodeEditor::CreateNewTab() {
+  EditorTab tab;
+  static int counter = 1;
+  tab.title = "Untitled " + std::to_string(counter++);
+  tabs.push_back(std::move(tab));
+  activeTabIndex = (int)tabs.size() - 1;
+}
+
+void NodeEditor::CloseTab(int index) {
+  if (index < 0 || index >= tabs.size())
+    return;
+
+  tabs.erase(tabs.begin() + index);
+  if (tabs.empty()) {
+    CreateNewTab();
+  }
+  if (activeTabIndex >= tabs.size()) {
+    activeTabIndex = (int)tabs.size() - 1;
   }
 }
 
@@ -137,8 +165,11 @@ inline void NodeEditor::RenderContextMenu() {
     for (const auto &desc : availableNodes) {
       auto item = desc();
       if (ImGui::MenuItem(item->title)) {
-        nodes.push_back(item);
-        ImNodes::AutoPositionNode(nodes.back());
+        EditorTab *tab = GetActiveTab();
+        if (tab) {
+          tab->nodes.push_back(item);
+          ImNodes::AutoPositionNode(tab->nodes.back());
+        }
       }
     }
     ImGui::Separator();
@@ -146,8 +177,11 @@ inline void NodeEditor::RenderContextMenu() {
       for (const auto &desc : availableGates) {
         auto item = desc();
         if (ImGui::MenuItem(item->title)) {
-          nodes.push_back(item);
-          ImNodes::AutoPositionNode(nodes.back());
+          EditorTab *tab = GetActiveTab();
+          if (tab) {
+            tab->nodes.push_back(item);
+            ImNodes::AutoPositionNode(tab->nodes.back());
+          }
         }
       }
       ImGui::EndMenu();
@@ -162,97 +196,17 @@ inline void NodeEditor::RenderContextMenu() {
 
 void NodeEditor::Redraw() {
   Node::GlobalFrameCount++;
-  auto context = ImNodes::Ez::CreateContext();
-  IM_UNUSED(context);
 
-  // --- REMOVED REDUNDANT MENU BAR BLOCK ---
-
-  // File Picker Helper
-  auto RenderFilePicker = [&]() {
-    ImGui::TextWrapped("Path: %s", currentPath.string().c_str());
-    if (ImGui::Button("Up")) {
-      if (currentPath.has_parent_path())
-        currentPath = currentPath.parent_path();
-    }
-
-    ImGui::Separator();
-    ImGui::BeginChild("FileList", ImVec2(400, 200), true);
-
-    std::vector<std::filesystem::directory_entry> dirs, files;
-    try {
-      for (const auto &entry :
-           std::filesystem::directory_iterator(currentPath)) {
-        if (entry.is_directory())
-          dirs.push_back(entry);
-        else if (entry.path().extension() == ".bin")
-          files.push_back(entry);
-      }
-    } catch (...) {
-    }
-
-    for (const auto &dir : dirs) {
-      std::string dirName = "[DIR] " + dir.path().filename().string();
-      if (ImGui::Selectable(dirName.c_str())) {
-        currentPath = dir.path();
-      }
-    }
-
-    for (const auto &file : files) {
-      if (ImGui::Selectable(file.path().filename().string().c_str())) {
-        strncpy(currentFilename, file.path().filename().string().c_str(), 128);
-      }
-    }
-
-    ImGui::EndChild();
-  };
-
-  // Save Gate Popup
-  if (openSaveGatePopup) {
-    ImGui::OpenPopup("SaveGatePopup");
-    openSaveGatePopup = false;
-  }
-  if (ImGui::BeginPopupModal("SaveGatePopup", NULL,
-                             ImGuiWindowFlags_AlwaysAutoResize)) {
-    ImGui::InputText("Filename", currentFilename, 128);
-
-    RenderFilePicker();
-    ImGui::Separator();
-
-    if (ImGui::Button("Save", ImVec2(120, 0))) {
-      std::filesystem::path fullPath = currentPath / currentFilename;
-      SaveGates(fullPath.string());
-      ImGui::CloseCurrentPopup();
-    }
-    ImGui::SameLine();
-    if (ImGui::Button("Cancel", ImVec2(120, 0))) {
-      ImGui::CloseCurrentPopup();
-    }
-    ImGui::EndPopup();
+  EditorTab *activeTab = GetActiveTab();
+  if (!activeTab) {
+    CreateNewTab();
+    activeTab = GetActiveTab();
   }
 
-  // Load Gate Popup
-  if (openLoadGatePopup) {
-    ImGui::OpenPopup("LoadGatePopup");
-    openLoadGatePopup = false;
-  }
-  if (ImGui::BeginPopupModal("LoadGatePopup", NULL,
-                             ImGuiWindowFlags_AlwaysAutoResize)) {
-    ImGui::InputText("Filename", currentFilename, 128);
+  if (!activeTab)
+    return;
 
-    RenderFilePicker();
-    ImGui::Separator();
-
-    if (ImGui::Button("Load", ImVec2(120, 0))) {
-      std::filesystem::path fullPath = currentPath / currentFilename;
-      LoadGates(fullPath.string());
-      ImGui::CloseCurrentPopup();
-    }
-    ImGui::SameLine();
-    if (ImGui::Button("Cancel", ImVec2(120, 0))) {
-      ImGui::CloseCurrentPopup();
-    }
-    ImGui::EndPopup();
-  }
+  ImNodes::Ez::SetContext(activeTab->context);
 
   ImGuiViewport *viewport = ImGui::GetMainViewport();
   ImGui::SetNextWindowPos(viewport->WorkPos);
@@ -261,16 +215,14 @@ void NodeEditor::Redraw() {
   ImGuiWindowFlags window_flags =
       ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize |
       ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse |
-      ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse |
-      ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoBringToFrontOnFocus;
+      ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus |
+      ImGuiWindowFlags_MenuBar;
 
-  ImVec2 mainWinPos;
-  float mainWinWidth;
+  // IMPORTANT: Everything UI related must be entirely inside this Begin/End
+  // block to avoid crashes
+  if (ImGui::Begin("Billyprints Editor", nullptr, window_flags)) {
 
-  if (ImGui::Begin("Billyprints", NULL, window_flags)) {
-    mainWinPos = ImGui::GetWindowPos();
-    mainWinWidth = ImGui::GetWindowWidth();
-
+    // --- Menu Bar ---
     if (ImGui::BeginMenuBar()) {
       if (ImGui::BeginMenu("File")) {
         if (ImGui::MenuItem("Open..", "Ctrl+O")) {
@@ -285,10 +237,15 @@ void NodeEditor::Redraw() {
           openLoadGatePopup = true;
         }
         ImGui::Separator();
+        if (ImGui::MenuItem("New Tab", "Ctrl+T")) {
+          CreateNewTab();
+        }
+        if (ImGui::MenuItem("Close Tab", "Ctrl+W")) {
+          CloseTab(activeTabIndex);
+        }
+        ImGui::Separator();
         if (ImGui::MenuItem("Create Gate..")) {
           openCreateGatePopup = true;
-        }
-        if (ImGui::MenuItem("Close", "Ctrl+W")) {
         }
         if (ImGui::MenuItem("Force Create Gate (Debug)")) {
           debugMsg = "Force Creating Gate...";
@@ -304,197 +261,216 @@ void NodeEditor::Redraw() {
       ImGui::EndMenuBar();
     }
 
-    if (openCreateGatePopup) {
-      ImGui::OpenPopup("CreateGatePopup");
-      openCreateGatePopup = false;
-    }
-
-    if (ImGui::BeginPopupModal("CreateGatePopup", NULL,
-                               ImGuiWindowFlags_AlwaysAutoResize)) {
-      ImGui::InputText("Gate Name", gateName, 128);
-      ImGui::ColorEdit3("Color", newGateColor);
-      if (ImGui::Button("Create", ImVec2(120, 0))) {
-        debugMsg = "Creating Gate: " + std::string(gateName);
-        CreateGate();
-        debugMsg += " -> Done";
-        ImGui::CloseCurrentPopup();
+    // --- Tab Bar ---
+    if (ImGui::BeginTabBar("MyTabs", ImGuiTabBarFlags_AutoSelectNewTabs)) {
+      if (ImGui::TabItemButton("+", ImGuiTabItemFlags_Trailing |
+                                        ImGuiTabItemFlags_NoTooltip)) {
+        CreateNewTab();
       }
-      ImGui::SameLine();
-      if (ImGui::Button("Cancel", ImVec2(120, 0))) {
-        ImGui::CloseCurrentPopup();
+
+      for (int i = 0; i < tabs.size(); ++i) {
+        bool open = true;
+        std::string name = tabs[i].title + "###Tab" + std::to_string(i);
+
+        ImGuiTabItemFlags flags = 0;
+        if (tabs[i].unsaved)
+          flags |= ImGuiTabItemFlags_UnsavedDocument;
+        // Logic to programmatically select new tabs could go here if we tracked
+        // "just created" state But for now, let ImGui handle selection.
+
+        if (ImGui::BeginTabItem(name.c_str(), &open, flags)) {
+          if (activeTabIndex != i) {
+            activeTabIndex = i;
+            // Context set happens at top of loop next proper redraw or
+            // immediately if we want
+            ImNodes::Ez::SetContext(tabs[i].context);
+          }
+          ImGui::EndTabItem();
+        }
+
+        if (!open) {
+          CloseTab(i);
+          // Adjust index if we closed the current or a previous tab
+          if (i <= activeTabIndex)
+            i--;
+          // activeTab might be invalid now, break or handle
+          //  But CloseTab handles re-creating logic if empty
+          break;
+        }
       }
-      ImGui::EndPopup();
+      ImGui::EndTabBar();
     }
-  }
 
-  float sidebarWidth = 400.0f;
-  if (showScriptEditor) {
-    ImGui::Columns(2, "EditorSplit", true);
-    ImGui::SetColumnWidth(0, ImGui::GetWindowWidth() - sidebarWidth);
-  }
+    // Re-acquire active tab after potential tab close/switch
+    activeTab = GetActiveTab();
+    if (activeTab) {
+      ImNodes::Ez::SetContext(activeTab->context);
 
-  ImNodes::Ez::BeginCanvas();
-  RenderDock();
+      // --- File Picker & Popups ---
+      auto RenderFilePicker = [&]() {
+        ImGui::TextWrapped("Path: %s",
+                           activeTab->filepath.empty()
+                               ? "Unsaved"
+                               : activeTab->filepath.string().c_str());
+        static std::filesystem::path browsingPath =
+            std::filesystem::current_path();
 
-  // --- Cyberpunk Visuals Start ---
+        ImGui::TextWrapped("Browsing: %s", browsingPath.string().c_str());
+        if (ImGui::Button("Up")) {
+          if (browsingPath.has_parent_path())
+            browsingPath = browsingPath.parent_path();
+        }
 
-  // 1. Hex Grid Background
-  auto *canvas = ImNodes::GetCurrentCanvas();
-  ImDrawList *drawList = ImGui::GetWindowDrawList();
-  ImVec2 canvasPos = ImGui::GetCursorScreenPos();
-  ImVec2 canvasSize = ImGui::GetContentRegionAvail();
+        ImGui::Separator();
+        ImGui::BeginChild("FileList", ImVec2(400, 200), true);
 
-  // Draw deep dark background
-  drawList->AddRectFilled(
-      canvasPos, ImVec2(canvasPos.x + canvasSize.x, canvasPos.y + canvasSize.y),
-      IM_COL32(20, 20, 25, 255));
+        try {
+          for (const auto &entry :
+               std::filesystem::directory_iterator(browsingPath)) {
+            if (entry.is_directory()) {
+              if (ImGui::Selectable(
+                      ("[Dir] " + entry.path().filename().string()).c_str())) {
+                browsingPath = entry.path();
+              }
+            } else {
+              if (ImGui::Selectable(entry.path().filename().string().c_str())) {
+                strcpy(currentFilename,
+                       entry.path().filename().string().c_str());
+              }
+            }
+          }
+        } catch (...) {
+        }
+        ImGui::EndChild();
+      };
 
-  // Grid Logic
-  const float HEX_SIZE = 50.0f * canvas->Zoom;
-  const float SQRT3 = 1.7320508f;
-  const float HEX_W = HEX_SIZE * SQRT3;
-  const float HEX_H = HEX_SIZE * 2.0f;
-  const float HEX_X_SPACING = HEX_W;
-  const float HEX_Y_SPACING = HEX_H * 0.75f;
-
-  ImVec2 offset = canvas->Offset;
-
-  // Calculate visible range
-  int startX = (int)((-offset.x) / HEX_X_SPACING) - 1;
-  int startY = (int)((-offset.y) / HEX_Y_SPACING) - 1;
-  int endX = startX + (int)(canvasSize.x / HEX_X_SPACING) + 2;
-  int endY = startY + (int)(canvasSize.y / HEX_Y_SPACING) + 2;
-
-  ImColor gridColor = IM_COL32(50, 60, 70, 40); // Faint hex lines
-
-  for (int y = startY; y < endY; ++y) {
-    for (int x = startX; x < endX; ++x) {
-      float xPos = x * HEX_X_SPACING;
-      float yPos = y * HEX_Y_SPACING;
-      if (y % 2 != 0)
-        xPos += HEX_X_SPACING * 0.5f;
-
-      ImVec2 center =
-          ImVec2(canvasPos.x + offset.x + xPos, canvasPos.y + offset.y + yPos);
-
-      // Draw Hexagon
-      ImVec2 verts[6];
-      for (int i = 0; i < 6; ++i) {
-        float angle = 3.14159f / 3.0f * (i + 0.5f);
-        verts[i] = ImVec2(center.x + cos(angle) * HEX_SIZE * 0.5f,
-                          center.y + sin(angle) * HEX_SIZE * 0.5f);
+      if (openSaveGatePopup)
+        ImGui::OpenPopup("SaveGatePopup");
+      if (ImGui::BeginPopupModal("SaveGatePopup", NULL,
+                                 ImGuiWindowFlags_AlwaysAutoResize)) {
+        ImGui::InputText("Filename", currentFilename, 128);
+        RenderFilePicker();
+        if (ImGui::Button("Save", ImVec2(120, 0))) {
+          SaveGates((currentPath / currentFilename).string());
+          ImGui::CloseCurrentPopup();
+          openSaveGatePopup = false;
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("Cancel", ImVec2(120, 0))) {
+          ImGui::CloseCurrentPopup();
+          openSaveGatePopup = false;
+        }
+        ImGui::EndPopup();
       }
-      drawList->AddPolyline(verts, 6, gridColor, true, 1.5f);
-    }
-  }
 
-  // 2. Glassmorphism Styles
-  ImNodes::Ez::PushStyleVar(ImNodesStyleVar_NodeRounding, 8.0f);
-  ImNodes::Ez::PushStyleVar(ImNodesStyleVar_ItemSpacing, ImVec2(4.0f, 2.0f));
-  ImNodes::Ez::PushStyleVar(ImNodesStyleVar_NodeSpacing, ImVec2(4.0f, 4.0f));
-
-  // Update rendering colors in RenderNode manually? No, we set them per node
-  // locally mostly, but lets set defaults for others
-  canvas->Colors[ImNodes::ColCanvasLines] =
-      IM_COL32(0, 0, 0, 0); // Hide default grid
-  canvas->Colors[ImNodes::ColNodeBorder] =
-      IM_COL32(100, 200, 255, 150); // Cyan glass border
-
-  ImGui::Text("Debug: %s", debugMsg.c_str());
-
-  RenderNodes();
-
-  RenderContextMenu();
-
-  ImNodes::Ez::EndCanvas();
-  ImNodes::Ez::PopStyleVar(3);
-
-  if (showScriptEditor) {
-    ImGui::NextColumn();
-    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(4, 2));
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(4, 4));
-    ImGui::BeginChild("ScriptPanel", ImVec2(0, 0), false);
-
-    // Header Row
-    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
-    ImGui::Text("Scene Script");
-    ImGui::SameLine(ImGui::GetContentRegionAvail().x - 90);
-    if (ImGui::SmallButton("Sync")) {
-      UpdateScriptFromNodes();
-    }
-    ImGui::SameLine();
-    if (ImGui::SmallButton("Apply")) {
-      UpdateNodesFromScript();
-    }
-    ImGui::PopStyleVar(); // FramePadding
-
-    // Only update script from nodes if the user isn't currently typing in the
-    // editor
-    static bool scriptActive = false;
-
-    if (!scriptActive) {
-      UpdateScriptFromNodes();
-    }
-
-    static char scriptBuf[8192];
-    static bool bufferInitialized = false;
-    if (!scriptActive || !bufferInitialized) {
-      strncpy(scriptBuf, currentScript.c_str(), 8191);
-      bufferInitialized = true;
-    }
-
-    ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 5.0f);
-    if (ImGui::InputTextMultiline(
-            "##script", scriptBuf, 8192,
-            ImVec2(-1, -ImGui::GetTextLineHeightWithSpacing() * 8))) {
-      currentScript = scriptBuf;
-      UpdateNodesFromScript();
-    }
-    ImGui::PopStyleVar();
-
-    scriptActive = ImGui::IsItemActive();
-
-    if (!scriptError.empty()) {
-      ImGui::Separator();
-      if (ImGui::Selectable(errorPanelCollapsed ? "> Show Errors"
-                                                : "v Hide Errors")) {
-        errorPanelCollapsed = !errorPanelCollapsed;
+      if (openLoadGatePopup)
+        ImGui::OpenPopup("LoadGatePopup");
+      if (ImGui::BeginPopupModal("LoadGatePopup", NULL,
+                                 ImGuiWindowFlags_AlwaysAutoResize)) {
+        ImGui::InputText("Filename", currentFilename, 128);
+        RenderFilePicker();
+        if (ImGui::Button("Load", ImVec2(120, 0))) {
+          LoadGates((currentPath / currentFilename).string());
+          ImGui::CloseCurrentPopup();
+          openLoadGatePopup = false;
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("Cancel", ImVec2(120, 0))) {
+          ImGui::CloseCurrentPopup();
+          openLoadGatePopup = false;
+        }
+        ImGui::EndPopup();
       }
-      if (!errorPanelCollapsed) {
-        ImGui::BeginChild("ErrorList", ImVec2(0, 150), true);
-        ImGui::SetWindowFontScale(0.9f);
-        ImGui::TextWrapped("%s", scriptError.c_str());
+
+      if (openCreateGatePopup)
+        ImGui::OpenPopup("CreateGatePopup");
+      if (ImGui::BeginPopupModal("CreateGatePopup", NULL,
+                                 ImGuiWindowFlags_AlwaysAutoResize)) {
+        ImGui::InputText("Gate Name", gateName, 128);
+        ImGui::ColorEdit3("Color", newGateColor);
+        if (ImGui::Button("Create", ImVec2(120, 0))) {
+          CreateGate();
+          ImGui::CloseCurrentPopup();
+          openCreateGatePopup = false;
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("Cancel")) {
+          ImGui::CloseCurrentPopup();
+          openCreateGatePopup = false;
+        }
+        ImGui::EndPopup();
+      }
+
+      // --- Editor Split ---
+      float sidebarWidth = 400.0f;
+      if (showScriptEditor) {
+        ImGui::Columns(2, "EditorSplit", true);
+        ImGui::SetColumnWidth(0, ImGui::GetWindowWidth() - sidebarWidth);
+      }
+
+      // --- Canvas ---
+      ImNodes::Ez::BeginCanvas();
+      RenderNodes();
+
+      // --- Visuals & Overlays (Inside Canvas for context access) ---
+      auto *canvas = ImNodes::GetCurrentCanvas();
+      if (canvas) {
+        ImNodes::Ez::PushStyleVar(ImNodesStyleVar_NodeRounding, 8.0f);
+        canvas->Colors[ImNodes::ColCanvasLines] = IM_COL32(0, 0, 0, 0);
+
+        RenderContextMenu();
+        RenderDock();
+
+        ImNodes::Ez::PopStyleVar();
+      }
+
+      ImNodes::Ez::EndCanvas();
+
+      // --- Dock Overlay (Now Inside Canvas) ---
+      // Reset cursor to draw overlay on top if needed?
+      // RenderDock uses ForegroundDrawList so it doesn't matter where cursor is
+      // usually.
+
+      // --- Sidebar ---
+      if (showScriptEditor) {
+        ImGui::NextColumn();
+        ImGui::BeginChild("ScriptPanel");
+
+        // Script editor logic
+        static char scriptBuf[1024 * 64];
+
+        // Determine if we are editing the script
+        ImGuiID scriptID = ImGui::GetID("##scene");
+        bool isTyping = (ImGui::GetActiveID() == scriptID);
+
+        if (!isTyping) {
+          // Not typing: Sync Nodes -> Script (Live)
+          UpdateScriptFromNodes();
+          strncpy(scriptBuf, activeTab->currentScript.c_str(),
+                  sizeof(scriptBuf) - 1);
+        }
+
+        if (ImGui::InputTextMultiline("##scene", scriptBuf, sizeof(scriptBuf),
+                                      ImVec2(-1, -1))) {
+          activeTab->currentScript = scriptBuf;
+        }
+
+        // Sync Script -> Nodes when done editing (or maybe on change?)
+        // DeactivatedAfterEdit is good to avoid constant rebuilding while
+        // typing
+        if (ImGui::IsItemDeactivatedAfterEdit()) {
+          UpdateNodesFromScript();
+        }
+        if (!activeTab->scriptError.empty()) {
+          ImGui::TextColored(ImVec4(1, 0, 0, 1), "%s",
+                             activeTab->scriptError.c_str());
+        }
         ImGui::EndChild();
       }
-    } // End of !scriptError.empty()
-    ImGui::EndChild();
-    ImGui::PopStyleVar(2); // ItemSpacing, WindowPadding
-    ImGui::Columns(1);
-  }
-
-  ImGui::End();
-
-  // Persistent Sidebar Toggle Overlay
-  float buttonWidth = 30.0f;
-  float overlayX = mainWinPos.x + mainWinWidth - buttonWidth -
-                   5; // Default (Collapsed) position
-
-  if (showScriptEditor) {
-    overlayX = mainWinPos.x + mainWinWidth - sidebarWidth - buttonWidth;
-  }
-
-  ImGui::SetNextWindowPos(ImVec2(overlayX, mainWinPos.y + 300));
-  ImGui::SetNextWindowBgAlpha(0.0f);
-  if (ImGui::Begin(
-          "SidebarToggleOverlay", NULL,
-          ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize |
-              ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav)) {
-    if (ImGui::Button(showScriptEditor ? ">" : "<", ImVec2(buttonWidth, 30))) {
-      showScriptEditor = !showScriptEditor;
     }
   }
   ImGui::End();
 }
 
-NodeEditor::NodeEditor() {}
+NodeEditor::NodeEditor() { CreateNewTab(); }
 } // namespace Billyprints
