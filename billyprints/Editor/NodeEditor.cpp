@@ -30,19 +30,21 @@ void NodeEditor::RenderDock() {
   // Use Foreground draw list to overlay everything
   ImDrawList *drawList = ImGui::GetForegroundDrawList();
 
+  float dockAlphaMultiplier = anyNodeDragged ? 0.35f : 1.0f;
+
   // Background Shadow/Glow
   drawList->AddRectFilled(
       ImVec2(dockPos.x - 5, dockPos.y - 5),
       ImVec2(dockPos.x + dockSize.x + 5, dockPos.y + dockSize.y + 5),
-      IM_COL32(0, 0, 0, 60), 16.0f);
+      IM_COL32(0, 0, 0, (int)(60 * dockAlphaMultiplier)), 16.0f);
 
   // Glassmorphic Body
   drawList->AddRectFilled(
       dockPos, ImVec2(dockPos.x + dockSize.x, dockPos.y + dockSize.y),
-      IM_COL32(30, 35, 45, 180), 14.0f);
-  drawList->AddRect(dockPos,
-                    ImVec2(dockPos.x + dockSize.x, dockPos.y + dockSize.y),
-                    IM_COL32(255, 255, 255, 40), 14.0f, 0, 2.0f);
+      IM_COL32(30, 35, 45, (int)(180 * dockAlphaMultiplier)), 14.0f);
+  drawList->AddRect(
+      dockPos, ImVec2(dockPos.x + dockSize.x, dockPos.y + dockSize.y),
+      IM_COL32(255, 255, 255, (int)(40 * dockAlphaMultiplier)), 14.0f, 0, 2.0f);
 
   float xOffset = iconPadding;
   ImVec2 mousePos = ImGui::GetMousePos();
@@ -63,10 +65,12 @@ void NodeEditor::RenderDock() {
     ImVec2 animatedCenter = center;
 
     // Icon Circle
-    drawList->AddCircleFilled(animatedCenter, currentSize * 0.5f,
-                              (color & 0x00FFFFFF) | 0xDD000000, 32);
-    drawList->AddCircle(animatedCenter, currentSize * 0.5f,
-                        IM_COL32(255, 255, 255, 80), 32, 1.5f);
+    drawList->AddCircleFilled(
+        animatedCenter, currentSize * 0.5f,
+        (color & 0x00FFFFFF) | ((int)(0xDD * dockAlphaMultiplier) << 24), 32);
+    drawList->AddCircle(
+        animatedCenter, currentSize * 0.5f,
+        IM_COL32(255, 255, 255, (int)(80 * dockAlphaMultiplier)), 32, 1.5f);
 
     // Symbol/Label in center
     ImGui::PushFont(ImGui::GetIO().Fonts->Fonts[0]); // Use default font
@@ -82,7 +86,8 @@ void NodeEditor::RenderDock() {
                    textSize.x * 0.5f * (fontSize / ImGui::GetFontSize()),
                animatedCenter.y -
                    textSize.y * 0.5f * (fontSize / ImGui::GetFontSize())),
-        IM_COL32(255, 255, 255, 255), shortLabel.c_str());
+        IM_COL32(255, 255, 255, (int)(255 * dockAlphaMultiplier)),
+        shortLabel.c_str());
     ImGui::PopFont();
 
     // Full Label Tooltip or hint
@@ -172,10 +177,14 @@ void NodeEditor::UpdateGateDefinitionFromCurrentScene(const std::string &name) {
 }
 
 inline void NodeEditor::RenderNodes() {
+  anyNodeDragged = false;
   for (auto it = nodes.begin(); it != nodes.end();) {
     Node *node = *it;
 
     RenderNode(node);
+
+    if (ImGui::IsItemActive() && ImGui::IsMouseDragging(0))
+      anyNodeDragged = true;
 
     if (node->selected && ImGui::IsKeyPressedMap(ImGuiKey_Delete) &&
         ImGui::IsWindowFocused()) {
@@ -412,17 +421,19 @@ void NodeEditor::Redraw() {
     // Editing Banner
     if (!editingGateName.empty()) {
       ImGui::PushStyleColor(ImGuiCol_ChildBg, IM_COL32(180, 100, 20, 200));
-      ImGui::BeginChild("EditingBanner", ImVec2(0, 40), true);
+      ImGui::BeginChild("EditingBanner", ImVec2(0, 40), true,
+                        ImGuiWindowFlags_NoScrollbar |
+                            ImGuiWindowFlags_NoScrollWithMouse);
       ImGui::Text("Editing Gate: %s", editingGateName.c_str());
-      ImGui::SameLine(ImGui::GetContentRegionAvail().x - 160);
-      if (ImGui::Button("Save and Close", ImVec2(100, 0))) {
+      ImGui::SameLine(ImGui::GetContentRegionAvail().x - 200);
+      if (ImGui::Button("Save and Close", ImVec2(120, 0))) {
         UpdateGateDefinitionFromCurrentScene(editingGateName);
         currentScript = originalSceneScript;
         UpdateNodesFromScript();
         editingGateName = "";
       }
       ImGui::SameLine();
-      if (ImGui::Button("Discard", ImVec2(60, 0))) {
+      if (ImGui::Button("Discard", ImVec2(80, 0))) {
         currentScript = originalSceneScript;
         UpdateNodesFromScript();
         editingGateName = "";

@@ -12,6 +12,7 @@ class NodeEditor {
   float newGateColor[3] = {0.2f, 0.2f, 0.2f}; // Default color
   std::string debugMsg = "Ready";
   bool openCreateGatePopup = false;
+  bool anyNodeDragged = false;
 
   void RenderNode(Node *node);
   void RenderNodes();
