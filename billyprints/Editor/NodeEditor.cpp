@@ -244,48 +244,58 @@ void NodeEditor::Redraw() {
     nodeToDuplicate = nullptr;
   }
   if (nodeToEdit) {
-    originalSceneScript = currentScript;
-    editingGateName = nodeToEdit->title;
+    // Check if it's a custom gate or a standard gate
+    bool isCustom = CustomGate::GateRegistry.count(nodeToEdit->title);
 
-    // Find the definition
-    for (const auto &def : customGateDefinitions) {
-      if (def.name == editingGateName) {
-        // Clear current nodes
-        for (auto *n : nodes)
-          delete n;
-        nodes.clear();
+    if (isCustom) {
+      originalSceneScript = currentScript;
+      editingGateName = nodeToEdit->title;
 
-        // Map for ID reconstruction
-        std::map<int, Node *> idToNode;
+      // Find the definition
+      for (const auto &def : customGateDefinitions) {
+        if (def.name == editingGateName) {
+          // Clear current nodes
+          for (auto *n : nodes)
+            delete n;
+          nodes.clear();
 
-        // 1. Create nodes
-        for (const auto &nodeDef : def.nodes) {
-          Node *n = CreateNodeByType(nodeDef.type);
-          if (n) {
-            n->pos = nodeDef.pos;
-            n->id = "n" + std::to_string(nodeDef.id);
-            nodes.push_back(n);
-            idToNode[nodeDef.id] = n;
+          // Map for ID reconstruction
+          std::map<int, Node *> idToNode;
+
+          // 1. Create nodes
+          for (const auto &nodeDef : def.nodes) {
+            Node *n = CreateNodeByType(nodeDef.type);
+            if (n) {
+              n->pos = nodeDef.pos;
+              n->id = "n" + std::to_string(nodeDef.id);
+              nodes.push_back(n);
+              idToNode[nodeDef.id] = n;
+            }
           }
-        }
 
-        // 2. Create connections
-        for (const auto &connDef : def.connections) {
-          if (idToNode.count(connDef.inputNodeId) &&
-              idToNode.count(connDef.outputNodeId)) {
-            Connection conn;
-            conn.inputNode = idToNode[connDef.inputNodeId];
-            conn.inputSlot = connDef.inputSlot;
-            conn.outputNode = idToNode[connDef.outputNodeId];
-            conn.outputSlot = connDef.outputSlot;
-            ((Node *)conn.inputNode)->connections.push_back(conn);
-            ((Node *)conn.outputNode)->connections.push_back(conn);
+          // 2. Create connections
+          for (const auto &connDef : def.connections) {
+            if (idToNode.count(connDef.inputNodeId) &&
+                idToNode.count(connDef.outputNodeId)) {
+              Connection conn;
+              conn.inputNode = idToNode[connDef.inputNodeId];
+              conn.inputSlot = connDef.inputSlot;
+              conn.outputNode = idToNode[connDef.outputNodeId];
+              conn.outputSlot = connDef.outputSlot;
+              ((Node *)conn.inputNode)->connections.push_back(conn);
+              ((Node *)conn.outputNode)->connections.push_back(conn);
+            }
           }
+          UpdateScriptFromNodes();
+          lastParsedScript = currentScript;
+          break;
         }
-        UpdateScriptFromNodes();
-        lastParsedScript = currentScript;
-        break;
       }
+    } else {
+      // Standard gate - open code editor
+      gateBeingEdited = (Gate *)nodeToEdit;
+      editingCode = gateBeingEdited->GetCode();
+      showCodeEditor = true;
     }
     nodeToEdit = nullptr;
   }
@@ -666,6 +676,39 @@ void NodeEditor::Redraw() {
     }
   }
   ImGui::End();
+
+  // Logic Editor Modal
+  if (showCodeEditor) {
+    ImGui::OpenPopup("Logic Editor");
+    showCodeEditor = false;
+  }
+
+  if (ImGui::BeginPopupModal("Logic Editor", NULL,
+                             ImGuiWindowFlags_AlwaysAutoResize)) {
+    ImGui::Text("Editing Logic for: %p (%s)", gateBeingEdited,
+                gateBeingEdited ? gateBeingEdited->title : "Unknown");
+    ImGui::Separator();
+
+    char codeBuf[1024];
+    strncpy(codeBuf, editingCode.c_str(), 1023);
+    if (ImGui::InputTextMultiline("##gateCode", codeBuf, 1024,
+                                  ImVec2(400, 200))) {
+      editingCode = codeBuf;
+    }
+
+    ImGui::Separator();
+    if (ImGui::Button("Apply", ImVec2(120, 0))) {
+      if (gateBeingEdited) {
+        gateBeingEdited->SetCode(editingCode);
+      }
+      ImGui::CloseCurrentPopup();
+    }
+    ImGui::SameLine();
+    if (ImGui::Button("Cancel", ImVec2(120, 0))) {
+      ImGui::CloseCurrentPopup();
+    }
+    ImGui::EndPopup();
+  }
 }
 
 NodeEditor::NodeEditor() {}
