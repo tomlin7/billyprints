@@ -194,9 +194,11 @@ bool RenderConnection(const ImVec2 &input_pos, const ImVec2 &output_pos,
 
   thickness *= canvas->Zoom;
 
-  ImVec2 p2 = input_pos - ImVec2{canvas->Style.CurveStrength * canvas->Zoom, 0};
-  ImVec2 p3 =
-      output_pos + ImVec2{canvas->Style.CurveStrength * canvas->Zoom, 0};
+  float dx = ImFabs(input_pos.x - output_pos.x);
+  float strength = ImMin(canvas->Style.CurveStrength * canvas->Zoom, dx * 0.5f);
+
+  ImVec2 p2 = input_pos - ImVec2{strength, 0};
+  ImVec2 p3 = output_pos + ImVec2{strength, 0};
 #if IMGUI_VERSION_NUM < 18000
   ImVec2 closest_pt = ImBezierClosestPointCasteljau(
       input_pos, p2, p3, output_pos, ImGui::GetMousePos(),
