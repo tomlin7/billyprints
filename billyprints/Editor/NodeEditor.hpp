@@ -42,6 +42,10 @@ class NodeEditor {
   char currentFilename[128] = "custom_gates.bin";
   std::filesystem::path currentPath = std::filesystem::current_path();
 
+  bool showCodeEditor = false;
+  std::string editingCode;
+  Gate *gateBeingEdited = nullptr;
+
 public:
   NodeEditor();
   void Redraw();

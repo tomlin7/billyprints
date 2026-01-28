@@ -1,14 +1,14 @@
 #include "NOT.hpp"
 
 namespace Billyprints {
-NOT::NOT() : Gate("NOT", {{"in"}}, {{"out"}}) {}
+NOT::NOT() : Gate("NOT", {{"in"}}, {{"out"}}) { logicCode = "!in"; }
 
 bool NOT::NOT_F(const std::vector<bool> &input, const int &) {
-  for (const bool &pin : input)
-    if (!pin)
-      return !pin;
+  if (input.empty())
+    return true; // Not in -> True? Default behavior of NOT is usually invert
+                 // source.
 
-  return false;
+  return !input[0];
 }
 
 bool NOT::Evaluate() {
@@ -16,12 +16,18 @@ bool NOT::Evaluate() {
     return value;
 
   isEvaluating = true;
-  std::vector<bool> input;
-  for (const auto &cn : connections)
-    if (cn.inputNode == this)
-      input.push_back(((Node *)cn.outputNode)->Evaluate());
 
-  value = NOT_F(input, inputSlotCount);
+  if (!logicCode.empty()) {
+    value = EvaluateExpression();
+  } else {
+    std::vector<bool> input;
+    for (const auto &cn : connections)
+      if (cn.inputNode == this)
+        input.push_back(((Node *)cn.outputNode)->Evaluate());
+
+    value = NOT_F(input, inputSlotCount);
+  }
+
   lastEvaluatedFrame = GlobalFrameCount;
   isEvaluating = false;
   return value;

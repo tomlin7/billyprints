@@ -112,9 +112,9 @@ void Gate::Render() {
     if (ImGui::MenuItem("Duplicate")) {
       nodeToDuplicate = this;
     }
-    if (std::string(title) != "In" && std::string(title) != "Out" &&
-        CustomGate::GateRegistry.count(title)) {
-      if (ImGui::MenuItem("Edit Circuit")) {
+    if (std::string(title) != "In" && std::string(title) != "Out") {
+      bool isCustom = CustomGate::GateRegistry.count(title);
+      if (ImGui::MenuItem(isCustom ? "Edit Circuit" : "Edit Logic")) {
         nodeToEdit = this;
       }
     }
@@ -123,6 +123,79 @@ void Gate::Render() {
       nodeToDelete = this;
     }
     ImGui::EndPopup();
+  }
+}
+bool Gate::EvaluateExpression() {
+  if (logicCode.empty())
+    return false;
+
+  // Very basic expression evaluator for Boolean logic
+  // Supports: !, &&, ||, ^, (, ), in0, in1, ...
+
+  // 1. Get current input values
+  std::map<std::string, bool> inputs;
+  for (int i = 0; i < inputSlotCount; ++i) {
+    std::string name = inputSlots[i].title;
+
+    bool val = false;
+    for (const auto &conn : connections) {
+      if (conn.inputNode == this && conn.inputSlot == name) {
+        val = ((Node *)conn.outputNode)->Evaluate();
+        break;
+      }
+    }
+    inputs[name] = val;
+  }
+
+  // 2. Simple recursive descent if possible, or just a basic replace-and-eval
+  // For now, let's just implement a tiny tokenizer and stack-based eval
+  std::string expr = logicCode;
+
+  // Replace tokens with values
+  auto replaceAll = [&](std::string &s, const std::string &from,
+                        const std::string &to) {
+    size_t pos = 0;
+    while ((pos = s.find(from, pos)) != std::string::npos) {
+      s.replace(pos, from.length(), to);
+      pos += to.length();
+    }
+  };
+
+  for (auto const &[name, val] : inputs) {
+    replaceAll(expr, name, val ? "1" : "0");
+  }
+
+  // Basic evaluation of the resulting string (0s and 1s with !, &&, ||)
+  // This is a placeholder for a better parser.
+  // For now, let's just do a tiny one.
+
+  auto eval = [&](auto self, std::string s) -> bool {
+    while (s.find(' ') != std::string::npos)
+      s.erase(s.find(' '), 1);
+    if (s.empty())
+      return false;
+    if (s == "1")
+      return true;
+    if (s == "0")
+      return false;
+
+    // Simple operators
+    if (s[0] == '!')
+      return !self(self, s.substr(1));
+
+    size_t pos;
+    if ((pos = s.find("||")) != std::string::npos)
+      return self(self, s.substr(0, pos)) || self(self, s.substr(pos + 2));
+    if ((pos = s.find("&&")) != std::string::npos)
+      return self(self, s.substr(0, pos)) && self(self, s.substr(pos + 2));
+
+    return false;
+  };
+
+  try {
+    return eval(eval, expr);
+  } catch (...) {
+    return false;
   }
 }
 } // namespace Billyprints
