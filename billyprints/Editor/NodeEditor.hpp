@@ -23,6 +23,10 @@ class NodeEditor {
   void SaveGates(const std::string &filename);
   void LoadGates(const std::string &filename);
 
+  std::string editingGateName;
+  std::string originalSceneScript;
+  void DuplicateNode(Node *node);
+
   std::string currentScript;
   std::string lastParsedScript;
   std::string scriptError;

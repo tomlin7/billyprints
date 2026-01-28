@@ -5,6 +5,12 @@
 namespace Billyprints {
 inline void NodeEditor::RenderNode(Node *node) { node->Render(); }
 
+// Global pointers for interaction helpers
+Node *nodeToDuplicate = nullptr;
+Node *nodeToEdit = nullptr;
+Node *nodeToDelete = nullptr;
+bool nodeHoveredForContextMenu = false;
+
 void NodeEditor::RenderDock() {
   float dockHeight = 84.0f;
   float iconSize = 48.0f;
@@ -108,6 +114,17 @@ void NodeEditor::RenderDock() {
   }
 }
 
+void NodeEditor::DuplicateNode(Node *node) {
+  if (!node)
+    return;
+  Node *newNode = CreateNodeByType(node->title);
+  if (newNode) {
+    newNode->pos = ImVec2(node->pos.x + 30.0f, node->pos.y + 30.0f);
+    nodes.push_back(newNode);
+    ImNodes::AutoPositionNode(newNode);
+  }
+}
+
 inline void NodeEditor::RenderNodes() {
   for (auto it = nodes.begin(); it != nodes.end();) {
     Node *node = *it;
@@ -130,10 +147,44 @@ inline void NodeEditor::RenderNodes() {
     } else
       ++it;
   }
+
+  // Handle global interaction requests
+  if (nodeToDuplicate) {
+    DuplicateNode(nodeToDuplicate);
+    nodeToDuplicate = nullptr;
+  }
+  if (nodeToEdit) {
+    originalSceneScript = currentScript;
+    // For now, we'll just show the banner.
+    // In a full implementation, we'd load the gate's script here.
+    editingGateName = nodeToEdit->title;
+    nodeToEdit = nullptr;
+  }
+  if (nodeToDelete) {
+    for (auto it = nodes.begin(); it != nodes.end(); ++it) {
+      if (*it == nodeToDelete) {
+        // Handle connections
+        for (auto &connection : (*it)->connections) {
+          if (connection.outputNode == *it) {
+            ((Node *)connection.inputNode)->DeleteConnection(connection);
+          } else {
+            ((Node *)connection.outputNode)->DeleteConnection(connection);
+          }
+        }
+        delete *it;
+        nodes.erase(it);
+        break;
+      }
+    }
+    nodeToDelete = nullptr;
+  }
 }
 
 inline void NodeEditor::RenderContextMenu() {
-  if (ImGui::BeginPopupContextWindow("NodesContextMenu")) {
+  if (!nodeHoveredForContextMenu &&
+      ImGui::BeginPopupContextWindow("NodesContextMenu",
+                                     ImGuiPopupFlags_MouseButtonRight |
+                                         ImGuiPopupFlags_NoOpenOverItems)) {
     for (const auto &desc : availableNodes) {
       auto item = desc();
       if (ImGui::MenuItem(item->title)) {
@@ -161,6 +212,7 @@ inline void NodeEditor::RenderContextMenu() {
 }
 
 void NodeEditor::Redraw() {
+  nodeHoveredForContextMenu = false;
   Node::GlobalFrameCount++;
   auto context = ImNodes::Ez::CreateContext();
   IM_UNUSED(context);
@@ -270,6 +322,37 @@ void NodeEditor::Redraw() {
   if (ImGui::Begin("Billyprints", NULL, window_flags)) {
     mainWinPos = ImGui::GetWindowPos();
     mainWinWidth = ImGui::GetWindowWidth();
+
+    // Editing Banner
+    if (!editingGateName.empty()) {
+      ImGui::PushStyleColor(ImGuiCol_ChildBg, IM_COL32(180, 100, 20, 200));
+      ImGui::BeginChild("EditingBanner", ImVec2(0, 40), true);
+      ImGui::Text("Editing Gate: %s", editingGateName.c_str());
+      ImGui::SameLine(ImGui::GetContentRegionAvail().x - 160);
+      if (ImGui::Button("Save and Close", ImVec2(100, 0))) {
+        // Find the gate definition and update it
+        for (auto &def : customGateDefinitions) {
+          if (def.name == editingGateName) {
+            UpdateScriptFromNodes();
+            // We need a way to parse back to GateDefinition,
+            // but for now, we'll just stop editing.
+            // Ideally we'd re-generate the definition here.
+            break;
+          }
+        }
+        currentScript = originalSceneScript;
+        UpdateNodesFromScript();
+        editingGateName = "";
+      }
+      ImGui::SameLine();
+      if (ImGui::Button("Discard", ImVec2(60, 0))) {
+        currentScript = originalSceneScript;
+        UpdateNodesFromScript();
+        editingGateName = "";
+      }
+      ImGui::EndChild();
+      ImGui::PopStyleColor();
+    }
 
     if (ImGui::BeginMenuBar()) {
       if (ImGui::BeginMenu("File")) {

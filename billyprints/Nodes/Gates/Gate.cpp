@@ -1,6 +1,12 @@
 #include "Gate.hpp"
+#include "CustomGate.hpp"
+#include <string>
 
 namespace Billyprints {
+extern Node *nodeToDuplicate;
+extern Node *nodeToEdit;
+extern Node *nodeToDelete;
+extern bool nodeHoveredForContextMenu;
 Gate::Gate(const char *_title, std::vector<ImNodes::Ez::SlotInfo> &&_inputSlots,
            std::vector<ImNodes::Ez::SlotInfo> &&_outputSlots)
     : Node(_title, std::move(_inputSlots), std::move(_outputSlots)) {}
@@ -99,6 +105,27 @@ void Gate::Render() {
 
     ImNodes::Ez::EndNode();
     ImNodes::Ez::PopStyleColor(7);
+
+    if (ImGui::IsItemHovered()) {
+      nodeHoveredForContextMenu = true;
+    }
+
+    if (ImGui::BeginPopupContextItem("NodeContextMenu")) {
+      if (ImGui::MenuItem("Duplicate")) {
+        nodeToDuplicate = this;
+      }
+      if (std::string(title) != "In" && std::string(title) != "Out" &&
+          CustomGate::GateRegistry.count(title)) {
+        if (ImGui::MenuItem("Edit Circuit")) {
+          nodeToEdit = this;
+        }
+      }
+      ImGui::Separator();
+      if (ImGui::MenuItem("Delete", "Del")) {
+        nodeToDelete = this;
+      }
+      ImGui::EndPopup();
+    }
   }
 }
 } // namespace Billyprints
