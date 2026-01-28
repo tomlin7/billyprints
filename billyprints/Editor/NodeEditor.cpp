@@ -56,11 +56,11 @@ void NodeEditor::RenderDock() {
                     mousePos.y >= dockPos.y + (dockHeight - iconSize) * 0.5f &&
                     mousePos.y <= dockPos.y + (dockHeight + iconSize) * 0.5f);
 
-    float scale = hovered ? 1.25f : 1.0f;
-    float lift = hovered ? -12.0f : 0.0f;
-    float currentSize = iconSize * scale;
+    float scale = 1.0f;
+    float lift = 0.0f;
+    float currentSize = iconSize;
 
-    ImVec2 animatedCenter = ImVec2(center.x, center.y + lift);
+    ImVec2 animatedCenter = center;
 
     // Icon Circle
     drawList->AddCircleFilled(animatedCenter, currentSize * 0.5f,
@@ -95,6 +95,8 @@ void NodeEditor::RenderDock() {
         Node *newNode = factory();
         nodes.push_back(newNode);
         ImNodes::AutoPositionNode(newNode);
+        // Attempt to make the node active immediately for dragging
+        ImGui::SetActiveID(ImGui::GetID(newNode), ImGui::GetCurrentWindow());
       }
     }
 
@@ -125,6 +127,50 @@ void NodeEditor::DuplicateNode(Node *node) {
   }
 }
 
+void NodeEditor::UpdateGateDefinitionFromCurrentScene(const std::string &name) {
+  for (auto &def : customGateDefinitions) {
+    if (def.name == name) {
+      def.nodes.clear();
+      def.connections.clear();
+      def.inputPinIndices.clear();
+      def.outputPinIndices.clear();
+
+      std::map<Node *, int> nodeToId;
+      int idCounter = 0;
+
+      for (auto *n : nodes) {
+        NodeDefinition nDef;
+        nDef.type = n->title;
+        nDef.pos = n->pos;
+        nDef.id = idCounter++;
+        def.nodes.push_back(nDef);
+        nodeToId[n] = nDef.id;
+
+        if (nDef.type == "In")
+          def.inputPinIndices.push_back(nDef.id);
+        else if (nDef.type == "Out")
+          def.outputPinIndices.push_back(nDef.id);
+      }
+
+      for (auto *n : nodes) {
+        for (const auto &conn : n->connections) {
+          if (conn.outputNode == n) {
+            ConnectionDefinition cDef;
+            cDef.outputNodeId = nodeToId[n];
+            cDef.outputSlot = conn.outputSlot;
+            cDef.inputNodeId = nodeToId[(Node *)conn.inputNode];
+            cDef.inputSlot = conn.inputSlot;
+            def.connections.push_back(cDef);
+          }
+        }
+      }
+      // Update the global registry as well
+      CustomGate::GateRegistry[name] = def;
+      break;
+    }
+  }
+}
+
 inline void NodeEditor::RenderNodes() {
   for (auto it = nodes.begin(); it != nodes.end();) {
     Node *node = *it;
@@ -146,37 +192,6 @@ inline void NodeEditor::RenderNodes() {
       it = nodes.erase(it);
     } else
       ++it;
-  }
-
-  // Handle global interaction requests
-  if (nodeToDuplicate) {
-    DuplicateNode(nodeToDuplicate);
-    nodeToDuplicate = nullptr;
-  }
-  if (nodeToEdit) {
-    originalSceneScript = currentScript;
-    // For now, we'll just show the banner.
-    // In a full implementation, we'd load the gate's script here.
-    editingGateName = nodeToEdit->title;
-    nodeToEdit = nullptr;
-  }
-  if (nodeToDelete) {
-    for (auto it = nodes.begin(); it != nodes.end(); ++it) {
-      if (*it == nodeToDelete) {
-        // Handle connections
-        for (auto &connection : (*it)->connections) {
-          if (connection.outputNode == *it) {
-            ((Node *)connection.inputNode)->DeleteConnection(connection);
-          } else {
-            ((Node *)connection.outputNode)->DeleteConnection(connection);
-          }
-        }
-        delete *it;
-        nodes.erase(it);
-        break;
-      }
-    }
-    nodeToDelete = nullptr;
   }
 }
 
@@ -213,6 +228,77 @@ inline void NodeEditor::RenderContextMenu() {
 
 void NodeEditor::Redraw() {
   nodeHoveredForContextMenu = false;
+
+  // Handle global interaction requests
+  if (nodeToDuplicate) {
+    DuplicateNode(nodeToDuplicate);
+    nodeToDuplicate = nullptr;
+  }
+  if (nodeToEdit) {
+    originalSceneScript = currentScript;
+    editingGateName = nodeToEdit->title;
+
+    // Find the definition
+    for (const auto &def : customGateDefinitions) {
+      if (def.name == editingGateName) {
+        // Clear current nodes
+        for (auto *n : nodes)
+          delete n;
+        nodes.clear();
+
+        // Map for ID reconstruction
+        std::map<int, Node *> idToNode;
+
+        // 1. Create nodes
+        for (const auto &nodeDef : def.nodes) {
+          Node *n = CreateNodeByType(nodeDef.type);
+          if (n) {
+            n->pos = nodeDef.pos;
+            n->id = "n" + std::to_string(nodeDef.id);
+            nodes.push_back(n);
+            idToNode[nodeDef.id] = n;
+          }
+        }
+
+        // 2. Create connections
+        for (const auto &connDef : def.connections) {
+          if (idToNode.count(connDef.inputNodeId) &&
+              idToNode.count(connDef.outputNodeId)) {
+            Connection conn;
+            conn.inputNode = idToNode[connDef.inputNodeId];
+            conn.inputSlot = connDef.inputSlot;
+            conn.outputNode = idToNode[connDef.outputNodeId];
+            conn.outputSlot = connDef.outputSlot;
+            ((Node *)conn.inputNode)->connections.push_back(conn);
+            ((Node *)conn.outputNode)->connections.push_back(conn);
+          }
+        }
+        UpdateScriptFromNodes();
+        lastParsedScript = currentScript;
+        break;
+      }
+    }
+    nodeToEdit = nullptr;
+  }
+  if (nodeToDelete) {
+    for (auto it = nodes.begin(); it != nodes.end(); ++it) {
+      if (*it == nodeToDelete) {
+        // Handle connections
+        for (auto &connection : (*it)->connections) {
+          if (connection.outputNode == *it) {
+            ((Node *)connection.inputNode)->DeleteConnection(connection);
+          } else {
+            ((Node *)connection.outputNode)->DeleteConnection(connection);
+          }
+        }
+        delete *it;
+        nodes.erase(it);
+        break;
+      }
+    }
+    nodeToDelete = nullptr;
+  }
+
   Node::GlobalFrameCount++;
   auto context = ImNodes::Ez::CreateContext();
   IM_UNUSED(context);
@@ -330,16 +416,7 @@ void NodeEditor::Redraw() {
       ImGui::Text("Editing Gate: %s", editingGateName.c_str());
       ImGui::SameLine(ImGui::GetContentRegionAvail().x - 160);
       if (ImGui::Button("Save and Close", ImVec2(100, 0))) {
-        // Find the gate definition and update it
-        for (auto &def : customGateDefinitions) {
-          if (def.name == editingGateName) {
-            UpdateScriptFromNodes();
-            // We need a way to parse back to GateDefinition,
-            // but for now, we'll just stop editing.
-            // Ideally we'd re-generate the definition here.
-            break;
-          }
-        }
+        UpdateGateDefinitionFromCurrentScene(editingGateName);
         currentScript = originalSceneScript;
         UpdateNodesFromScript();
         editingGateName = "";
@@ -417,7 +494,6 @@ void NodeEditor::Redraw() {
   }
 
   ImNodes::Ez::BeginCanvas();
-  RenderDock();
 
   // --- Cyberpunk Visuals Start ---
 
@@ -488,6 +564,8 @@ void NodeEditor::Redraw() {
   RenderNodes();
 
   RenderContextMenu();
+
+  RenderDock();
 
   ImNodes::Ez::EndCanvas();
   ImNodes::Ez::PopStyleVar(3);

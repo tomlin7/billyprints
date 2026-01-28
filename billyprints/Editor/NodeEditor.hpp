@@ -26,6 +26,7 @@ class NodeEditor {
   std::string editingGateName;
   std::string originalSceneScript;
   void DuplicateNode(Node *node);
+  void UpdateGateDefinitionFromCurrentScene(const std::string &name);
 
   std::string currentScript;
   std::string lastParsedScript;

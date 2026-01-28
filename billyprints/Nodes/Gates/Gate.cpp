@@ -7,6 +7,7 @@ extern Node *nodeToDuplicate;
 extern Node *nodeToEdit;
 extern Node *nodeToDelete;
 extern bool nodeHoveredForContextMenu;
+
 Gate::Gate(const char *_title, std::vector<ImNodes::Ez::SlotInfo> &&_inputSlots,
            std::vector<ImNodes::Ez::SlotInfo> &&_outputSlots)
     : Node(_title, std::move(_inputSlots), std::move(_outputSlots)) {}
@@ -37,14 +38,10 @@ void Gate::Render() {
   ImNodes::Ez::PushStyleColor(ImNodesStyleCol_NodeBodyBgActive, color);
   ImNodes::Ez::PushStyleColor(ImNodesStyleCol_NodeBorder, borderColor);
 
-  if (ImNodes::Ez::BeginNode(this, "", &pos, &selected)) {
-
-    ImNodes::Ez::InputSlots(inputSlots.data(), inputSlotCount);
-
-    ImGui::TextUnformatted(title);
-    ImGui::SameLine();
-
-    ImNodes::Ez::OutputSlots(outputSlots.data(), outputSlotCount);
+  bool open = ImNodes::Ez::BeginNode(this, title, &pos, &selected);
+  if (open) {
+    ImNodes::Ez::InputSlots(inputSlots.data(), (int)inputSlots.size());
+    ImNodes::Ez::OutputSlots(outputSlots.data(), (int)outputSlots.size());
 
     // Handle new connections
     void *inNode, *outNode;
@@ -102,30 +99,30 @@ void Gate::Render() {
       }
       canvas->Colors[ImNodes::ColConnection] = originalConnectionColor;
     }
+  }
 
-    ImNodes::Ez::EndNode();
-    ImNodes::Ez::PopStyleColor(7);
+  ImNodes::Ez::EndNode();
+  ImNodes::Ez::PopStyleColor(7);
 
-    if (ImGui::IsItemHovered()) {
-      nodeHoveredForContextMenu = true;
+  if (ImGui::IsItemHovered()) {
+    nodeHoveredForContextMenu = true;
+  }
+
+  if (ImGui::BeginPopupContextItem()) {
+    if (ImGui::MenuItem("Duplicate")) {
+      nodeToDuplicate = this;
     }
-
-    if (ImGui::BeginPopupContextItem("NodeContextMenu")) {
-      if (ImGui::MenuItem("Duplicate")) {
-        nodeToDuplicate = this;
+    if (std::string(title) != "In" && std::string(title) != "Out" &&
+        CustomGate::GateRegistry.count(title)) {
+      if (ImGui::MenuItem("Edit Circuit")) {
+        nodeToEdit = this;
       }
-      if (std::string(title) != "In" && std::string(title) != "Out" &&
-          CustomGate::GateRegistry.count(title)) {
-        if (ImGui::MenuItem("Edit Circuit")) {
-          nodeToEdit = this;
-        }
-      }
-      ImGui::Separator();
-      if (ImGui::MenuItem("Delete", "Del")) {
-        nodeToDelete = this;
-      }
-      ImGui::EndPopup();
     }
+    ImGui::Separator();
+    if (ImGui::MenuItem("Delete", "Del")) {
+      nodeToDelete = this;
+    }
+    ImGui::EndPopup();
   }
 }
 } // namespace Billyprints
