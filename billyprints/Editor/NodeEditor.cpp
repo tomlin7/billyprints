@@ -1,4 +1,9 @@
+#ifndef IMGUI_DEFINE_MATH_OPERATORS
+#define IMGUI_DEFINE_MATH_OPERATORS
+#endif
+
 #include "NodeEditor.hpp"
+#include <imgui_internal.h>
 #include <string>
 #include <vector>
 
@@ -515,6 +520,7 @@ void NodeEditor::Redraw() {
   }
 
   ImNodes::Ez::BeginCanvas();
+  canvasWindowPos = ImGui::GetWindowPos();
 
   // --- Cyberpunk Visuals Start ---
 
@@ -585,6 +591,31 @@ void NodeEditor::Redraw() {
   RenderNodes();
 
   RenderContextMenu();
+
+  // Detect connection dropped in empty space
+  if (!showConnectionDropMenu) {
+    void *srcNode;
+    const char *srcSlot;
+    int srcKind;
+    if (ImNodes::GetPendingConnection(&srcNode, &srcSlot, &srcKind)) {
+      const ImGuiPayload *payload = ImGui::GetDragDropPayload();
+      if (payload && ImGui::IsMouseReleased(0) && !payload->Delivery) {
+        dropSourceNode = srcNode;
+        dropSourceSlot = std::string(srcSlot);
+        dropSourceSlotKind = srcKind;
+        connectionDropPos = ImGui::GetMousePos();
+
+        bool isInput = ImNodes::IsInputSlotKind(srcKind);
+        ImNodes::GetSlotPosition(srcNode, srcSlot, isInput,
+                                 &connectionSourceSlotPos);
+
+        showConnectionDropMenu = true;
+        ImGui::OpenPopup("ConnectionDropMenu");
+      }
+    }
+  }
+
+  RenderConnectionDropMenu();
 
   RenderDock();
 
@@ -708,6 +739,118 @@ void NodeEditor::Redraw() {
       ImGui::CloseCurrentPopup();
     }
     ImGui::EndPopup();
+  }
+}
+
+void NodeEditor::RenderConnectionDropMenu() {
+  if (!showConnectionDropMenu)
+    return;
+
+  // Draw connection line from source slot to drop position
+  ImDrawList *drawList = ImGui::GetWindowDrawList();
+  auto *canvas = ImNodes::GetCurrentCanvas();
+  float thickness = canvas->Style.CurveThickness * canvas->Zoom;
+  float dx = ImFabs(connectionSourceSlotPos.x - connectionDropPos.x);
+  float strength = ImMin(canvas->Style.CurveStrength * canvas->Zoom, dx * 0.5f);
+
+  ImVec2 input_pos, output_pos;
+  float indent = canvas->Style.ConnectionIndent * canvas->Zoom;
+
+  if (ImNodes::IsInputSlotKind(dropSourceSlotKind)) {
+    input_pos = connectionSourceSlotPos;
+    input_pos.x += indent;
+    output_pos = connectionDropPos;
+  } else {
+    input_pos = connectionDropPos;
+    output_pos = connectionSourceSlotPos;
+    output_pos.x -= indent;
+  }
+
+  ImVec2 p2 = input_pos - ImVec2{strength, 0};
+  ImVec2 p3 = output_pos + ImVec2{strength, 0};
+  drawList->AddBezierCubic(input_pos, p2, p3, output_pos,
+                           IM_COL32(200, 200, 200, 150), thickness);
+
+  // Render popup menu
+  ImGui::SetNextWindowPos(connectionDropPos);
+  if (ImGui::BeginPopup("ConnectionDropMenu")) {
+    bool fromOutput = ImNodes::IsOutputSlotKind(dropSourceSlotKind);
+
+    for (const auto &desc : availableNodes) {
+      auto item = desc();
+      // Filter: if dragging from output, only show nodes with inputs
+      // If dragging from input, only show nodes with outputs
+      bool compatible =
+          fromOutput ? (item->inputSlotCount > 0) : (item->outputSlotCount > 0);
+      if (compatible && ImGui::MenuItem(item->title)) {
+        Node *newNode = desc();
+
+        // Position node at drop location (canvas coordinates)
+        newNode->pos = (connectionDropPos - canvasWindowPos) / canvas->Zoom -
+                       canvas->Offset;
+        nodes.push_back(newNode);
+
+        // Create connection
+        Connection conn;
+        if (fromOutput) {
+          conn.outputNode = dropSourceNode;
+          conn.outputSlot = dropSourceSlot;
+          conn.inputNode = newNode;
+          conn.inputSlot = newNode->inputSlots[0].title;
+        } else {
+          conn.inputNode = dropSourceNode;
+          conn.inputSlot = dropSourceSlot;
+          conn.outputNode = newNode;
+          conn.outputSlot = newNode->outputSlots[0].title;
+        }
+
+        ((Node *)conn.inputNode)->connections.push_back(conn);
+        ((Node *)conn.outputNode)->connections.push_back(conn);
+
+        showConnectionDropMenu = false;
+      }
+      delete item;
+    }
+
+    ImGui::Separator();
+    if (ImGui::BeginMenu("Gates")) {
+      for (const auto &desc : availableGates) {
+        auto item = desc();
+        bool compatible = fromOutput ? (item->inputSlotCount > 0)
+                                     : (item->outputSlotCount > 0);
+        if (compatible && ImGui::MenuItem(item->title)) {
+          Node *newNode = desc();
+          newNode->pos = (connectionDropPos - canvasWindowPos) / canvas->Zoom -
+                         canvas->Offset;
+          nodes.push_back(newNode);
+
+          Connection conn;
+          if (fromOutput) {
+            conn.outputNode = dropSourceNode;
+            conn.outputSlot = dropSourceSlot;
+            conn.inputNode = newNode;
+            conn.inputSlot = newNode->inputSlots[0].title;
+          } else {
+            conn.inputNode = dropSourceNode;
+            conn.inputSlot = dropSourceSlot;
+            conn.outputNode = newNode;
+            conn.outputSlot = newNode->outputSlots[0].title;
+          }
+
+          ((Node *)conn.inputNode)->connections.push_back(conn);
+          ((Node *)conn.outputNode)->connections.push_back(conn);
+
+          showConnectionDropMenu = false;
+        }
+        delete item;
+      }
+      ImGui::EndMenu();
+    }
+
+    ImGui::EndPopup();
+  } else {
+    // Popup was closed (clicked outside)
+    showConnectionDropMenu = false;
   }
 }
 

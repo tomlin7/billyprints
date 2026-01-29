@@ -18,6 +18,16 @@ class NodeEditor {
   void RenderNodes();
   void RenderContextMenu();
   void RenderDock();
+  void RenderConnectionDropMenu();
+
+  // Connection drop menu state
+  bool showConnectionDropMenu = false;
+  ImVec2 connectionDropPos;
+  ImVec2 connectionSourceSlotPos;
+  void *dropSourceNode = nullptr;
+  std::string dropSourceSlot;
+  int dropSourceSlotKind = 0;
+  ImVec2 canvasWindowPos;
   void CreateGate();
 
   std::vector<GateDefinition> customGateDefinitions;

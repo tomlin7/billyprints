@@ -114,5 +114,7 @@ IMGUI_API void EndSlot();
 IMGUI_API bool IsSlotCurveHovered();
 /// Returns `true` when new slot is being created and current slot can be connected. Call between `Begin*Slot()` and `EndSlot()`.
 IMGUI_API bool IsConnectingCompatibleSlot();
+/// Returns the cached screen position of a slot. Call after the slot has been rendered at least once.
+IMGUI_API bool GetSlotPosition(void* node_id, const char* slot_title, bool is_input, ImVec2* out_pos);
 
 }   // namespace ImNodes
