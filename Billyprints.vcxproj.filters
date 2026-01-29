@@ -57,6 +57,9 @@
     <ClInclude Include="billyprints\Nodes\Gates\NOT.hpp">
       <Filter>billyprints\Nodes\Gates</Filter>
     </ClInclude>
+    <ClInclude Include="billyprints\Nodes\Gates\PlaceholderGate.hpp">
+      <Filter>billyprints\Nodes\Gates</Filter>
+    </ClInclude>
     <ClInclude Include="billyprints\Nodes\Gates\legacy\Buffer.hpp">
       <Filter>billyprints\Nodes\Gates\legacy</Filter>
     </ClInclude>
@@ -162,6 +165,9 @@
       <Filter>billyprints\Nodes\Gates</Filter>
     </ClCompile>
     <ClCompile Include="billyprints\Nodes\Gates\NOT.cpp">
+      <Filter>billyprints\Nodes\Gates</Filter>
+    </ClCompile>
+    <ClCompile Include="billyprints\Nodes\Gates\PlaceholderGate.cpp">
       <Filter>billyprints\Nodes\Gates</Filter>
     </ClCompile>
     <ClCompile Include="billyprints\Nodes\Gates\legacy\Buffer.cpp">

@@ -53,6 +53,7 @@ class NodeEditor {
   std::string currentScript;
   std::string lastParsedScript;
   std::string scriptError;
+  std::string scriptDefinitions; // Stores define...end blocks for preservation
   bool showScriptEditor = true;
   bool errorPanelCollapsed = false;
   void UpdateScriptFromNodes();
