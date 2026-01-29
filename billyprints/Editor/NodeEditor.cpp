@@ -5,6 +5,12 @@
 namespace Billyprints {
 inline void NodeEditor::RenderNode(Node *node) { node->Render(); }
 
+// Global pointers for interaction helpers
+Node *nodeToDuplicate = nullptr;
+Node *nodeToEdit = nullptr;
+Node *nodeToDelete = nullptr;
+bool nodeHoveredForContextMenu = false;
+
 void NodeEditor::RenderDock() {
   float dockHeight = 84.0f;
   float iconSize = 48.0f;
@@ -24,19 +30,21 @@ void NodeEditor::RenderDock() {
   // Use Foreground draw list to overlay everything
   ImDrawList *drawList = ImGui::GetForegroundDrawList();
 
+  float dockAlphaMultiplier = anyNodeDragged ? 0.35f : 1.0f;
+
   // Background Shadow/Glow
   drawList->AddRectFilled(
       ImVec2(dockPos.x - 5, dockPos.y - 5),
       ImVec2(dockPos.x + dockSize.x + 5, dockPos.y + dockSize.y + 5),
-      IM_COL32(0, 0, 0, 60), 16.0f);
+      IM_COL32(0, 0, 0, (int)(60 * dockAlphaMultiplier)), 16.0f);
 
   // Glassmorphic Body
   drawList->AddRectFilled(
       dockPos, ImVec2(dockPos.x + dockSize.x, dockPos.y + dockSize.y),
-      IM_COL32(30, 35, 45, 180), 14.0f);
-  drawList->AddRect(dockPos,
-                    ImVec2(dockPos.x + dockSize.x, dockPos.y + dockSize.y),
-                    IM_COL32(255, 255, 255, 40), 14.0f, 0, 2.0f);
+      IM_COL32(30, 35, 45, (int)(180 * dockAlphaMultiplier)), 14.0f);
+  drawList->AddRect(
+      dockPos, ImVec2(dockPos.x + dockSize.x, dockPos.y + dockSize.y),
+      IM_COL32(255, 255, 255, (int)(40 * dockAlphaMultiplier)), 14.0f, 0, 2.0f);
 
   float xOffset = iconPadding;
   ImVec2 mousePos = ImGui::GetMousePos();
@@ -50,17 +58,19 @@ void NodeEditor::RenderDock() {
                     mousePos.y >= dockPos.y + (dockHeight - iconSize) * 0.5f &&
                     mousePos.y <= dockPos.y + (dockHeight + iconSize) * 0.5f);
 
-    float scale = hovered ? 1.25f : 1.0f;
-    float lift = hovered ? -12.0f : 0.0f;
-    float currentSize = iconSize * scale;
+    float scale = 1.0f;
+    float lift = 0.0f;
+    float currentSize = iconSize;
 
-    ImVec2 animatedCenter = ImVec2(center.x, center.y + lift);
+    ImVec2 animatedCenter = center;
 
     // Icon Circle
-    drawList->AddCircleFilled(animatedCenter, currentSize * 0.5f,
-                              (color & 0x00FFFFFF) | 0xDD000000, 32);
-    drawList->AddCircle(animatedCenter, currentSize * 0.5f,
-                        IM_COL32(255, 255, 255, 80), 32, 1.5f);
+    drawList->AddCircleFilled(
+        animatedCenter, currentSize * 0.5f,
+        (color & 0x00FFFFFF) | ((int)(0xDD * dockAlphaMultiplier) << 24), 32);
+    drawList->AddCircle(
+        animatedCenter, currentSize * 0.5f,
+        IM_COL32(255, 255, 255, (int)(80 * dockAlphaMultiplier)), 32, 1.5f);
 
     // Symbol/Label in center
     ImGui::PushFont(ImGui::GetIO().Fonts->Fonts[0]); // Use default font
@@ -76,7 +86,8 @@ void NodeEditor::RenderDock() {
                    textSize.x * 0.5f * (fontSize / ImGui::GetFontSize()),
                animatedCenter.y -
                    textSize.y * 0.5f * (fontSize / ImGui::GetFontSize())),
-        IM_COL32(255, 255, 255, 255), shortLabel.c_str());
+        IM_COL32(255, 255, 255, (int)(255 * dockAlphaMultiplier)),
+        shortLabel.c_str());
     ImGui::PopFont();
 
     // Full Label Tooltip or hint
@@ -89,6 +100,8 @@ void NodeEditor::RenderDock() {
         Node *newNode = factory();
         nodes.push_back(newNode);
         ImNodes::AutoPositionNode(newNode);
+        // Attempt to make the node active immediately for dragging
+        ImGui::SetActiveID(ImGui::GetID(newNode), ImGui::GetCurrentWindow());
       }
     }
 
@@ -108,11 +121,70 @@ void NodeEditor::RenderDock() {
   }
 }
 
+void NodeEditor::DuplicateNode(Node *node) {
+  if (!node)
+    return;
+  Node *newNode = CreateNodeByType(node->title);
+  if (newNode) {
+    newNode->pos = ImVec2(node->pos.x + 30.0f, node->pos.y + 30.0f);
+    nodes.push_back(newNode);
+    ImNodes::AutoPositionNode(newNode);
+  }
+}
+
+void NodeEditor::UpdateGateDefinitionFromCurrentScene(const std::string &name) {
+  for (auto &def : customGateDefinitions) {
+    if (def.name == name) {
+      def.nodes.clear();
+      def.connections.clear();
+      def.inputPinIndices.clear();
+      def.outputPinIndices.clear();
+
+      std::map<Node *, int> nodeToId;
+      int idCounter = 0;
+
+      for (auto *n : nodes) {
+        NodeDefinition nDef;
+        nDef.type = n->title;
+        nDef.pos = n->pos;
+        nDef.id = idCounter++;
+        def.nodes.push_back(nDef);
+        nodeToId[n] = nDef.id;
+
+        if (nDef.type == "In")
+          def.inputPinIndices.push_back(nDef.id);
+        else if (nDef.type == "Out")
+          def.outputPinIndices.push_back(nDef.id);
+      }
+
+      for (auto *n : nodes) {
+        for (const auto &conn : n->connections) {
+          if (conn.outputNode == n) {
+            ConnectionDefinition cDef;
+            cDef.outputNodeId = nodeToId[n];
+            cDef.outputSlot = conn.outputSlot;
+            cDef.inputNodeId = nodeToId[(Node *)conn.inputNode];
+            cDef.inputSlot = conn.inputSlot;
+            def.connections.push_back(cDef);
+          }
+        }
+      }
+      // Update the global registry as well
+      CustomGate::GateRegistry[name] = def;
+      break;
+    }
+  }
+}
+
 inline void NodeEditor::RenderNodes() {
+  anyNodeDragged = false;
   for (auto it = nodes.begin(); it != nodes.end();) {
     Node *node = *it;
 
     RenderNode(node);
+
+    if (ImGui::IsItemActive() && ImGui::IsMouseDragging(0))
+      anyNodeDragged = true;
 
     if (node->selected && ImGui::IsKeyPressedMap(ImGuiKey_Delete) &&
         ImGui::IsWindowFocused()) {
@@ -133,7 +205,10 @@ inline void NodeEditor::RenderNodes() {
 }
 
 inline void NodeEditor::RenderContextMenu() {
-  if (ImGui::BeginPopupContextWindow("NodesContextMenu")) {
+  if (!nodeHoveredForContextMenu &&
+      ImGui::BeginPopupContextWindow("NodesContextMenu",
+                                     ImGuiPopupFlags_MouseButtonRight |
+                                         ImGuiPopupFlags_NoOpenOverItems)) {
     for (const auto &desc : availableNodes) {
       auto item = desc();
       if (ImGui::MenuItem(item->title)) {
@@ -161,6 +236,78 @@ inline void NodeEditor::RenderContextMenu() {
 }
 
 void NodeEditor::Redraw() {
+  nodeHoveredForContextMenu = false;
+
+  // Handle global interaction requests
+  if (nodeToDuplicate) {
+    DuplicateNode(nodeToDuplicate);
+    nodeToDuplicate = nullptr;
+  }
+  if (nodeToEdit) {
+    originalSceneScript = currentScript;
+    editingGateName = nodeToEdit->title;
+
+    // Find the definition
+    for (const auto &def : customGateDefinitions) {
+      if (def.name == editingGateName) {
+        // Clear current nodes
+        for (auto *n : nodes)
+          delete n;
+        nodes.clear();
+
+        // Map for ID reconstruction
+        std::map<int, Node *> idToNode;
+
+        // 1. Create nodes
+        for (const auto &nodeDef : def.nodes) {
+          Node *n = CreateNodeByType(nodeDef.type);
+          if (n) {
+            n->pos = nodeDef.pos;
+            n->id = "n" + std::to_string(nodeDef.id);
+            nodes.push_back(n);
+            idToNode[nodeDef.id] = n;
+          }
+        }
+
+        // 2. Create connections
+        for (const auto &connDef : def.connections) {
+          if (idToNode.count(connDef.inputNodeId) &&
+              idToNode.count(connDef.outputNodeId)) {
+            Connection conn;
+            conn.inputNode = idToNode[connDef.inputNodeId];
+            conn.inputSlot = connDef.inputSlot;
+            conn.outputNode = idToNode[connDef.outputNodeId];
+            conn.outputSlot = connDef.outputSlot;
+            ((Node *)conn.inputNode)->connections.push_back(conn);
+            ((Node *)conn.outputNode)->connections.push_back(conn);
+          }
+        }
+        UpdateScriptFromNodes();
+        lastParsedScript = currentScript;
+        break;
+      }
+    }
+    nodeToEdit = nullptr;
+  }
+  if (nodeToDelete) {
+    for (auto it = nodes.begin(); it != nodes.end(); ++it) {
+      if (*it == nodeToDelete) {
+        // Handle connections
+        for (auto &connection : (*it)->connections) {
+          if (connection.outputNode == *it) {
+            ((Node *)connection.inputNode)->DeleteConnection(connection);
+          } else {
+            ((Node *)connection.outputNode)->DeleteConnection(connection);
+          }
+        }
+        delete *it;
+        nodes.erase(it);
+        break;
+      }
+    }
+    nodeToDelete = nullptr;
+  }
+
   Node::GlobalFrameCount++;
   auto context = ImNodes::Ez::CreateContext();
   IM_UNUSED(context);
@@ -271,6 +418,30 @@ void NodeEditor::Redraw() {
     mainWinPos = ImGui::GetWindowPos();
     mainWinWidth = ImGui::GetWindowWidth();
 
+    // Editing Banner
+    if (!editingGateName.empty()) {
+      ImGui::PushStyleColor(ImGuiCol_ChildBg, IM_COL32(180, 100, 20, 200));
+      ImGui::BeginChild("EditingBanner", ImVec2(0, 40), true,
+                        ImGuiWindowFlags_NoScrollbar |
+                            ImGuiWindowFlags_NoScrollWithMouse);
+      ImGui::Text("Editing Gate: %s", editingGateName.c_str());
+      ImGui::SameLine(ImGui::GetContentRegionAvail().x - 200);
+      if (ImGui::Button("Save and Close", ImVec2(120, 0))) {
+        UpdateGateDefinitionFromCurrentScene(editingGateName);
+        currentScript = originalSceneScript;
+        UpdateNodesFromScript();
+        editingGateName = "";
+      }
+      ImGui::SameLine();
+      if (ImGui::Button("Discard", ImVec2(80, 0))) {
+        currentScript = originalSceneScript;
+        UpdateNodesFromScript();
+        editingGateName = "";
+      }
+      ImGui::EndChild();
+      ImGui::PopStyleColor();
+    }
+
     if (ImGui::BeginMenuBar()) {
       if (ImGui::BeginMenu("File")) {
         if (ImGui::MenuItem("Open..", "Ctrl+O")) {
@@ -334,7 +505,6 @@ void NodeEditor::Redraw() {
   }
 
   ImNodes::Ez::BeginCanvas();
-  RenderDock();
 
   // --- Cyberpunk Visuals Start ---
 
@@ -405,6 +575,8 @@ void NodeEditor::Redraw() {
   RenderNodes();
 
   RenderContextMenu();
+
+  RenderDock();
 
   ImNodes::Ez::EndCanvas();
   ImNodes::Ez::PopStyleVar(3);

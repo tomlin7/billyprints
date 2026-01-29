@@ -12,6 +12,7 @@ class NodeEditor {
   float newGateColor[3] = {0.2f, 0.2f, 0.2f}; // Default color
   std::string debugMsg = "Ready";
   bool openCreateGatePopup = false;
+  bool anyNodeDragged = false;
 
   void RenderNode(Node *node);
   void RenderNodes();
@@ -22,6 +23,11 @@ class NodeEditor {
   std::vector<GateDefinition> customGateDefinitions;
   void SaveGates(const std::string &filename);
   void LoadGates(const std::string &filename);
+
+  std::string editingGateName;
+  std::string originalSceneScript;
+  void DuplicateNode(Node *node);
+  void UpdateGateDefinitionFromCurrentScene(const std::string &name);
 
   std::string currentScript;
   std::string lastParsedScript;
