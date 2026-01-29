@@ -16,6 +16,11 @@ void PinIn::Render() {
   ImU32 borderColor =
       Evaluate() ? IM_COL32(255, 255, 255, 200) : IM_COL32(50, 50, 50, 50);
 
+  // Selection highlight - bright cyan border when selected
+  if (selected) {
+    borderColor = IM_COL32(0, 200, 255, 255);
+  }
+
   ImNodes::Ez::PushStyleColor(ImNodesStyleCol_NodeTitleBarBg, color);
   ImNodes::Ez::PushStyleColor(ImNodesStyleCol_NodeTitleBarBgHovered, color);
   ImNodes::Ez::PushStyleColor(ImNodesStyleCol_NodeTitleBarBgActive, color);
