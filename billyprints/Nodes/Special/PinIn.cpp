@@ -14,7 +14,7 @@ void PinIn::Render() {
   ImU32 color = GetColor();
   color = (color & 0x00FFFFFF) | 0xFF000000;
   ImU32 borderColor =
-      Evaluate() ? IM_COL32(255, 255, 255, 200) : IM_COL32(50, 50, 50, 50);
+      Evaluate() ? IM_COL32(50, 255, 150, 255) : IM_COL32(50, 50, 50, 50);
 
   // Selection highlight - bright cyan border when selected
   if (selected) {
@@ -68,7 +68,7 @@ void PinIn::Render() {
         canvas->Colors[ImNodes::ColConnection] = IM_COL32(0, 200, 255, 255);
       } else {
         canvas->Colors[ImNodes::ColConnection] =
-            signal ? IM_COL32(255, 160, 20, 255) : IM_COL32(80, 90, 100, 255);
+            signal ? IM_COL32(50, 255, 150, 255) : IM_COL32(80, 90, 100, 255);
       }
 
       if (!ImNodes::Connection(
