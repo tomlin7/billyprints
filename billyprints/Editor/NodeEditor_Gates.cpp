@@ -200,4 +200,165 @@ void NodeEditor::LoadGates(const std::string &filename) {
   fclose(f);
 }
 
+void NodeEditor::SaveScene(const std::string &filename) {
+  FILE *f = fopen(filename.c_str(), "wb");
+  if (!f)
+    return;
+
+  // Build node ID map
+  std::map<Node *, int> nodePtrToId;
+  int idCounter = 0;
+
+  // Write magic number for scene files
+  const char magic[4] = {'B', 'P', 'S', '1'}; // Billyprints Scene v1
+  fwrite(magic, 1, 4, f);
+
+  // Write node count
+  size_t nodeCount = nodes.size();
+  fwrite(&nodeCount, sizeof(size_t), 1, f);
+
+  // Write nodes
+  for (auto *node : nodes) {
+    nodePtrToId[node] = idCounter++;
+
+    // Node type
+    std::string type = node->title;
+    size_t typeLen = type.size();
+    fwrite(&typeLen, sizeof(size_t), 1, f);
+    fwrite(type.c_str(), 1, typeLen, f);
+
+    // Node position
+    fwrite(&node->pos, sizeof(ImVec2), 1, f);
+  }
+
+  // Collect unique connections (only from output side to avoid duplicates)
+  std::vector<ConnectionDefinition> connections;
+  for (auto *node : nodes) {
+    for (const auto &conn : node->connections) {
+      if (conn.outputNode == node) {
+        ConnectionDefinition cd;
+        cd.inputNodeId = nodePtrToId[(Node *)conn.inputNode];
+        cd.inputSlot = conn.inputSlot;
+        cd.outputNodeId = nodePtrToId[(Node *)conn.outputNode];
+        cd.outputSlot = conn.outputSlot;
+        connections.push_back(cd);
+      }
+    }
+  }
+
+  // Write connection count
+  size_t connCount = connections.size();
+  fwrite(&connCount, sizeof(size_t), 1, f);
+
+  // Write connections
+  for (const auto &conn : connections) {
+    fwrite(&conn.inputNodeId, sizeof(int), 1, f);
+
+    size_t inSlotLen = conn.inputSlot.size();
+    fwrite(&inSlotLen, sizeof(size_t), 1, f);
+    fwrite(conn.inputSlot.c_str(), 1, inSlotLen, f);
+
+    fwrite(&conn.outputNodeId, sizeof(int), 1, f);
+
+    size_t outSlotLen = conn.outputSlot.size();
+    fwrite(&outSlotLen, sizeof(size_t), 1, f);
+    fwrite(conn.outputSlot.c_str(), 1, outSlotLen, f);
+  }
+
+  fclose(f);
+}
+
+void NodeEditor::LoadScene(const std::string &filename) {
+  FILE *f = fopen(filename.c_str(), "rb");
+  if (!f)
+    return;
+
+  // Verify magic number
+  char magic[4];
+  fread(magic, 1, 4, f);
+  if (magic[0] != 'B' || magic[1] != 'P' || magic[2] != 'S' || magic[3] != '1') {
+    fclose(f);
+    return; // Invalid file format
+  }
+
+  // Clear existing nodes
+  for (auto *node : nodes) {
+    delete node;
+  }
+  nodes.clear();
+
+  // Read node count
+  size_t nodeCount = 0;
+  fread(&nodeCount, sizeof(size_t), 1, f);
+
+  // Map for ID to node pointer
+  std::map<int, Node *> idToNode;
+
+  // Read nodes
+  for (size_t i = 0; i < nodeCount; i++) {
+    // Node type
+    size_t typeLen = 0;
+    fread(&typeLen, sizeof(size_t), 1, f);
+    std::string type;
+    type.resize(typeLen);
+    fread(&type[0], 1, typeLen, f);
+
+    // Node position
+    ImVec2 pos;
+    fread(&pos, sizeof(ImVec2), 1, f);
+
+    // Create node
+    Node *node = CreateNodeByType(type);
+    if (node) {
+      node->pos = pos;
+      node->id = "n" + std::to_string(i);
+      nodes.push_back(node);
+      idToNode[(int)i] = node;
+    }
+  }
+
+  // Read connection count
+  size_t connCount = 0;
+  fread(&connCount, sizeof(size_t), 1, f);
+
+  // Read connections
+  for (size_t i = 0; i < connCount; i++) {
+    int inputNodeId;
+    fread(&inputNodeId, sizeof(int), 1, f);
+
+    size_t inSlotLen = 0;
+    fread(&inSlotLen, sizeof(size_t), 1, f);
+    std::string inputSlot;
+    inputSlot.resize(inSlotLen);
+    fread(&inputSlot[0], 1, inSlotLen, f);
+
+    int outputNodeId;
+    fread(&outputNodeId, sizeof(int), 1, f);
+
+    size_t outSlotLen = 0;
+    fread(&outSlotLen, sizeof(size_t), 1, f);
+    std::string outputSlot;
+    outputSlot.resize(outSlotLen);
+    fread(&outputSlot[0], 1, outSlotLen, f);
+
+    // Create connection if both nodes exist
+    if (idToNode.count(inputNodeId) && idToNode.count(outputNodeId)) {
+      Connection conn;
+      conn.inputNode = idToNode[inputNodeId];
+      conn.inputSlot = inputSlot;
+      conn.outputNode = idToNode[outputNodeId];
+      conn.outputSlot = outputSlot;
+
+      ((Node *)conn.inputNode)->connections.push_back(conn);
+      ((Node *)conn.outputNode)->connections.push_back(conn);
+    }
+  }
+
+  fclose(f);
+
+  // Update script from loaded nodes
+  UpdateScriptFromNodes();
+  lastParsedScript = currentScript;
+}
+
 } // namespace Billyprints

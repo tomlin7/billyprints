@@ -34,6 +34,10 @@ class NodeEditor {
   void SaveGates(const std::string &filename);
   void LoadGates(const std::string &filename);
 
+  // Scene save/load
+  void SaveScene(const std::string &filename);
+  void LoadScene(const std::string &filename);
+
   std::string editingGateName;
   std::string originalSceneScript;
   void DuplicateNode(Node *node);
@@ -49,7 +53,10 @@ class NodeEditor {
 
   bool openSaveGatePopup = false;
   bool openLoadGatePopup = false;
+  bool openSaveScenePopup = false;
+  bool openLoadScenePopup = false;
   char currentFilename[128] = "custom_gates.bin";
+  char sceneFilename[128] = "scene.bps";
   std::filesystem::path currentPath = std::filesystem::current_path();
 
   bool showCodeEditor = false;

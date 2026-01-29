@@ -356,14 +356,14 @@ void NodeEditor::HandleKeyBindings() {
 
   // === FILE OPERATIONS ===
 
-  // Ctrl+S: Save gates
+  // Ctrl+S: Save scene
   if (ctrl && ImGui::IsKeyPressed(ImGuiKey_S)) {
-    openSaveGatePopup = true;
+    openSaveScenePopup = true;
   }
 
-  // Ctrl+O: Open/Load gates
+  // Ctrl+O: Open/Load scene
   if (ctrl && ImGui::IsKeyPressed(ImGuiKey_O)) {
-    openLoadGatePopup = true;
+    openLoadScenePopup = true;
   }
 
   // === QUICK ACTIONS ===
@@ -653,6 +653,93 @@ void NodeEditor::Redraw() {
     ImGui::EndPopup();
   }
 
+  // Scene File Picker Helper (filters for .bps files)
+  auto RenderSceneFilePicker = [&]() {
+    ImGui::TextWrapped("Path: %s", currentPath.string().c_str());
+    if (ImGui::Button("Up##Scene")) {
+      if (currentPath.has_parent_path())
+        currentPath = currentPath.parent_path();
+    }
+
+    ImGui::Separator();
+    ImGui::BeginChild("SceneFileList", ImVec2(400, 200), true);
+
+    std::vector<std::filesystem::directory_entry> dirs, files;
+    try {
+      for (const auto &entry :
+           std::filesystem::directory_iterator(currentPath)) {
+        if (entry.is_directory())
+          dirs.push_back(entry);
+        else if (entry.path().extension() == ".bps")
+          files.push_back(entry);
+      }
+    } catch (...) {
+    }
+
+    for (const auto &dir : dirs) {
+      std::string dirName = "[DIR] " + dir.path().filename().string();
+      if (ImGui::Selectable(dirName.c_str())) {
+        currentPath = dir.path();
+      }
+    }
+
+    for (const auto &file : files) {
+      if (ImGui::Selectable(file.path().filename().string().c_str())) {
+        strncpy(sceneFilename, file.path().filename().string().c_str(), 128);
+      }
+    }
+
+    ImGui::EndChild();
+  };
+
+  // Save Scene Popup
+  if (openSaveScenePopup) {
+    ImGui::OpenPopup("SaveScenePopup");
+    openSaveScenePopup = false;
+  }
+  if (ImGui::BeginPopupModal("SaveScenePopup", NULL,
+                             ImGuiWindowFlags_AlwaysAutoResize)) {
+    ImGui::InputText("Filename##Scene", sceneFilename, 128);
+
+    RenderSceneFilePicker();
+    ImGui::Separator();
+
+    if (ImGui::Button("Save##Scene", ImVec2(120, 0))) {
+      std::filesystem::path fullPath = currentPath / sceneFilename;
+      SaveScene(fullPath.string());
+      ImGui::CloseCurrentPopup();
+    }
+    ImGui::SameLine();
+    if (ImGui::Button("Cancel##Scene", ImVec2(120, 0))) {
+      ImGui::CloseCurrentPopup();
+    }
+    ImGui::EndPopup();
+  }
+
+  // Load Scene Popup
+  if (openLoadScenePopup) {
+    ImGui::OpenPopup("LoadScenePopup");
+    openLoadScenePopup = false;
+  }
+  if (ImGui::BeginPopupModal("LoadScenePopup", NULL,
+                             ImGuiWindowFlags_AlwaysAutoResize)) {
+    ImGui::InputText("Filename##SceneLoad", sceneFilename, 128);
+
+    RenderSceneFilePicker();
+    ImGui::Separator();
+
+    if (ImGui::Button("Load##SceneLoad", ImVec2(120, 0))) {
+      std::filesystem::path fullPath = currentPath / sceneFilename;
+      LoadScene(fullPath.string());
+      ImGui::CloseCurrentPopup();
+    }
+    ImGui::SameLine();
+    if (ImGui::Button("Cancel##SceneLoad", ImVec2(120, 0))) {
+      ImGui::CloseCurrentPopup();
+    }
+    ImGui::EndPopup();
+  }
+
   ImGuiViewport *viewport = ImGui::GetMainViewport();
   ImGui::SetNextWindowPos(viewport->WorkPos);
   ImGui::SetNextWindowSize(viewport->WorkSize);
@@ -696,9 +783,11 @@ void NodeEditor::Redraw() {
 
     if (ImGui::BeginMenuBar()) {
       if (ImGui::BeginMenu("File")) {
-        if (ImGui::MenuItem("Open..", "Ctrl+O")) {
+        if (ImGui::MenuItem("Open Scene..", "Ctrl+O")) {
+          openLoadScenePopup = true;
         }
-        if (ImGui::MenuItem("Save", "Ctrl+S")) {
+        if (ImGui::MenuItem("Save Scene", "Ctrl+S")) {
+          openSaveScenePopup = true;
         }
         ImGui::Separator();
         if (ImGui::MenuItem("Save Custom Gates...")) {
