@@ -4,6 +4,7 @@
 
 #include "NodeEditor.hpp"
 #include <imgui_internal.h>
+#include <map>
 #include <string>
 #include <vector>
 
@@ -159,6 +160,10 @@ void NodeEditor::DuplicateSelectedNodes() {
       selected.push_back(node);
     }
   }
+
+  // Map from original node to duplicated node
+  std::map<Node *, Node *> originalToDuplicate;
+
   // Deselect originals, duplicate and select new ones
   for (auto *node : selected) {
     node->selected = false;
@@ -167,6 +172,31 @@ void NodeEditor::DuplicateSelectedNodes() {
       newNode->pos = ImVec2(node->pos.x + 30.0f, node->pos.y + 30.0f);
       newNode->selected = true;
       nodes.push_back(newNode);
+      originalToDuplicate[node] = newNode;
+    }
+  }
+
+  // Duplicate connections between selected nodes
+  for (auto *node : selected) {
+    for (const auto &conn : node->connections) {
+      // Only process connections where this node is the output (to avoid duplicating twice)
+      if (conn.outputNode != node)
+        continue;
+
+      Node *inputNode = (Node *)conn.inputNode;
+      Node *outputNode = (Node *)conn.outputNode;
+
+      // Check if both ends of the connection are in the selected set
+      if (originalToDuplicate.count(inputNode) && originalToDuplicate.count(outputNode)) {
+        Connection newConn;
+        newConn.inputNode = originalToDuplicate[inputNode];
+        newConn.inputSlot = conn.inputSlot;
+        newConn.outputNode = originalToDuplicate[outputNode];
+        newConn.outputSlot = conn.outputSlot;
+
+        ((Node *)newConn.inputNode)->connections.push_back(newConn);
+        ((Node *)newConn.outputNode)->connections.push_back(newConn);
+      }
     }
   }
 }
