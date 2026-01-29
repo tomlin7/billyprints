@@ -1,0 +1,303 @@
+# Defining Custom Gates in Scripts
+
+Billyprints allows you to define custom gates directly in your script using the `define...end` syntax. This is powerful for creating reusable logic blocks without switching to the visual editor.
+
+## Basic Syntax
+
+```
+define GateName(input1, input2, ...) -> (output1, output2, ...):
+  output1 = expression
+  output2 = expression
+end
+```
+
+## Primitive Operations
+
+Only two operations are built-in primitives:
+
+| Operation | Syntax | Description |
+|-----------|--------|-------------|
+| AND | `a AND b` | Output HIGH if both inputs HIGH |
+| NOT | `NOT a` | Inverts the input signal |
+
+All other gates must be built from these primitives or from previously defined/loaded custom gates.
+
+---
+
+## Tutorial 1: Building Basic Gates
+
+### NAND Gate
+
+NAND is simply AND followed by NOT:
+
+```
+define NAND(a, b) -> (out):
+  t = a AND b
+  out = NOT t
+end
+```
+
+### OR Gate (De Morgan's Law)
+
+OR can be built using: `OR(a,b) = NOT(NOT(a) AND NOT(b))`
+
+```
+define OR(a, b) -> (out):
+  na = NOT a
+  nb = NOT b
+  t = na AND nb
+  out = NOT t
+end
+```
+
+### NOR Gate
+
+NOR is OR followed by NOT, or equivalently: `NOR(a,b) = NOT(a) AND NOT(b)`
+
+```
+define NOR(a, b) -> (out):
+  na = NOT a
+  nb = NOT b
+  out = na AND nb
+end
+```
+
+### XOR Gate
+
+XOR outputs HIGH when inputs are different: `XOR(a,b) = (a AND NOT(b)) OR (NOT(a) AND b)`
+
+```
+// First define OR (or load it from a library)
+define OR(a, b) -> (out):
+  na = NOT a
+  nb = NOT b
+  t = na AND nb
+  out = NOT t
+end
+
+define XOR(a, b) -> (out):
+  na = NOT a
+  nb = NOT b
+  t1 = a AND nb
+  t2 = na AND b
+  out = OR(t1, t2)
+end
+```
+
+### XNOR Gate
+
+XNOR is simply NOT(XOR):
+
+```
+define XNOR(a, b) -> (out):
+  t = XOR(a, b)
+  out = NOT t
+end
+```
+
+---
+
+## Tutorial 2: Building Arithmetic Circuits
+
+### Half Adder
+
+A half adder adds two bits and produces a sum and carry:
+- Sum = A XOR B
+- Carry = A AND B
+
+```
+// Assuming OR and XOR are already defined
+define HalfAdder(a, b) -> (sum, carry):
+  sum = XOR(a, b)
+  carry = a AND b
+end
+```
+
+### Full Adder
+
+A full adder adds three bits (A, B, and Carry-in):
+
+```
+define FullAdder(a, b, cin) -> (sum, cout):
+  // First half adder
+  s1 = XOR(a, b)
+  c1 = a AND b
+
+  // Second half adder
+  sum = XOR(s1, cin)
+  c2 = s1 AND cin
+
+  // Output carry
+  cout = OR(c1, c2)
+end
+```
+
+---
+
+## Tutorial 3: Using Loaded Gate Libraries
+
+You can use gates loaded from `.bin` files within your define blocks.
+
+### Workflow
+
+1. Load your gate library: **File > Load Custom Gates...**
+2. Now you can reference those gates in your script
+
+### Example
+
+Assume you have a library with a `MUX2` (2-input multiplexer) gate:
+
+```
+// MUX2 was loaded from gates.bin
+define MUX4(a, b, c, d, s0, s1) -> (out):
+  // Use loaded MUX2 gates
+  m1 = MUX2(a, b, s0)
+  m2 = MUX2(c, d, s0)
+  out = MUX2(m1, m2, s1)
+end
+```
+
+---
+
+## Tutorial 4: Multiple Outputs
+
+Custom gates can have multiple outputs:
+
+```
+define Decoder2to4(a, b) -> (y0, y1, y2, y3):
+  na = NOT a
+  nb = NOT b
+  y0 = na AND nb      // 00
+  y1 = a AND nb       // 01
+  y2 = na AND b       // 10
+  y3 = a AND b        // 11
+end
+```
+
+Using a multi-output gate:
+
+```
+Decoder2to4 dec @ 200, 100
+In sel0 @ 50, 100
+In sel1 @ 50, 200
+Out led0 @ 400, 50
+Out led1 @ 400, 150
+Out led2 @ 400, 250
+Out led3 @ 400, 350
+
+sel0 -> dec.in0
+sel1 -> dec.in1
+dec.out0 -> led0
+dec.out1 -> led1
+dec.out2 -> led2
+dec.out3 -> led3
+```
+
+---
+
+## Rules and Limitations
+
+### Signal Names
+- Must be valid identifiers (letters, numbers, underscores)
+- Case-sensitive
+- Cannot use reserved words: `define`, `end`, `AND`, `NOT`
+
+### Order Matters
+- Gates must be defined **before** they are used
+- Input/output order in the signature determines slot numbering (`in0`, `in1`, `out0`, `out1`)
+
+### No Nested Calls
+This is **NOT** allowed:
+```
+// WRONG - nested calls
+out = NAND(NAND(a, a), NAND(b, b))
+```
+
+Use intermediate signals instead:
+```
+// CORRECT - intermediate signals
+t1 = NAND(a, a)
+t2 = NAND(b, b)
+out = NAND(t1, t2)
+```
+
+### No Feedback Loops
+Define blocks create combinational logic only. You cannot create feedback loops within a define block.
+
+---
+
+## Complete Example: 4-Bit Ripple Carry Adder
+
+```
+// === Primitive Gates ===
+define OR(a, b) -> (out):
+  na = NOT a
+  nb = NOT b
+  t = na AND nb
+  out = NOT t
+end
+
+define XOR(a, b) -> (out):
+  na = NOT a
+  nb = NOT b
+  t1 = a AND nb
+  t2 = na AND b
+  out = OR(t1, t2)
+end
+
+// === Adder Components ===
+define FullAdder(a, b, cin) -> (sum, cout):
+  s1 = XOR(a, b)
+  c1 = a AND b
+  sum = XOR(s1, cin)
+  c2 = s1 AND cin
+  cout = OR(c1, c2)
+end
+
+// === Use in Circuit ===
+FullAdder fa0 @ 200, 100
+FullAdder fa1 @ 200, 250
+FullAdder fa2 @ 200, 400
+FullAdder fa3 @ 200, 550
+
+In a0 @ 50, 50
+In b0 @ 50, 100
+In a1 @ 50, 200
+In b1 @ 50, 250
+In a2 @ 50, 350
+In b2 @ 50, 400
+In a3 @ 50, 500
+In b3 @ 50, 550
+In cin @ 50, 650
+
+Out s0 @ 400, 75
+Out s1 @ 400, 225
+Out s2 @ 400, 375
+Out s3 @ 400, 525
+Out cout @ 400, 625
+
+// Bit 0
+a0 -> fa0.in0
+b0 -> fa0.in1
+cin -> fa0.in2
+fa0.out0 -> s0
+
+// Bit 1
+a1 -> fa1.in0
+b1 -> fa1.in1
+fa0.out1 -> fa1.in2
+fa1.out0 -> s1
+
+// Bit 2
+a2 -> fa2.in0
+b2 -> fa2.in1
+fa1.out1 -> fa2.in2
+fa2.out0 -> s2
+
+// Bit 3
+a3 -> fa3.in0
+b3 -> fa3.in1
+fa2.out1 -> fa3.in2
+fa3.out0 -> s3
+fa3.out1 -> cout
+```

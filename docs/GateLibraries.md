@@ -1,0 +1,190 @@
+# Managing Gate Libraries
+
+Gate libraries (`.bin` files) store reusable custom gate definitions. This guide covers creating, saving, loading, and handling missing gates.
+
+## Creating Custom Gates
+
+### Method 1: Visual Editor
+
+1. Build your gate circuit using nodes on the canvas
+2. Use `In` nodes for inputs and `Out` nodes for outputs
+3. Go to **File > Create Gate...**
+4. Enter a name and choose a color
+5. Click **Create**
+
+The gate is now available in the dock and can be used in your circuits.
+
+### Method 2: Script Definition
+
+Define gates directly in your script using the `define...end` syntax:
+
+```
+define NAND(a, b) -> (out):
+  t = a AND b
+  out = NOT t
+end
+```
+
+See [CustomGateDefinitions.md](CustomGateDefinitions.md) for detailed syntax.
+
+---
+
+## Saving Gate Libraries
+
+To save all your custom gates to a file:
+
+1. Go to **File > Save Custom Gates...**
+2. Choose a filename (e.g., `my_gates.bin`)
+3. Click **Save**
+
+This saves ALL currently defined custom gates to the file.
+
+---
+
+## Loading Gate Libraries
+
+To load gates from a file:
+
+1. Go to **File > Load Custom Gates...**
+2. Select the `.bin` file
+3. Click **Open**
+
+Loaded gates appear in the dock and become available for use in circuits and scripts.
+
+### Load Order Matters
+
+**Always load gate libraries BEFORE opening scenes that use them.**
+
+If you open a scene that references gates not in memory, those gates will appear as placeholders.
+
+---
+
+## Missing Gates and Placeholders
+
+When you open a scene that uses custom gates that aren't loaded, Billyprints handles this gracefully:
+
+### Warning Banner
+
+A red warning banner appears at the top of the editor showing:
+- "Scene uses custom gates that are not loaded"
+- List of missing gate names
+- **Load Library...** button
+- **Dismiss** button
+
+### Placeholder Nodes
+
+Missing gates are displayed as **placeholder nodes**:
+- Red/maroon color scheme
+- Title prefixed with "?" (e.g., "? MyGate")
+- Tooltip explains the gate is missing
+- Connections are preserved
+
+### Upgrading Placeholders
+
+When you load the missing gate library:
+1. Click **Load Library...** in the warning banner (or File > Load Custom Gates)
+2. Select the correct `.bin` file
+3. Placeholders automatically convert to real gates
+4. Connections are preserved
+5. Warning banner disappears
+
+---
+
+## Scene File Format (BPS2)
+
+Scene files now include a dependency section listing custom gate types used.
+
+### Format Overview
+
+```
+HEADER
+  "BPS2" (4 bytes) - Magic number
+
+DEPENDENCY SECTION
+  size_t    Custom gate type count
+  For each type:
+    size_t  Type name length
+    N bytes Type name
+
+NODES SECTION
+  size_t    Node count
+  For each node:
+    size_t  Type name length
+    N bytes Type name
+    ImVec2  Position
+    int     Input slot count
+    int     Output slot count
+
+CONNECTIONS SECTION
+  (same as BPS1)
+```
+
+### Backward Compatibility
+
+- BPS2 files work with the new version
+- BPS1 files (old format) still load correctly
+- When saving, files are always written as BPS2
+
+---
+
+## Best Practices
+
+### Project Organization
+
+```
+my_project/
+  ├── basic_gates.bin      # Fundamental gates (OR, XOR, NAND, etc.)
+  ├── arithmetic.bin       # Adders, multipliers, etc.
+  ├── memory.bin           # Latches, flip-flops, etc.
+  └── main_circuit.bps     # Your scene file
+```
+
+### Workflow Recommendations
+
+1. **Create a standard library** - Build common gates once and reuse
+2. **Load libraries first** - Before opening scenes or writing scripts
+3. **Save incrementally** - Save gate libraries after adding new gates
+4. **Use meaningful names** - `HalfAdder` not `HA1`
+
+### Sharing Projects
+
+When sharing a project, include:
+- The `.bps` scene file
+- All required `.bin` gate library files
+- A README noting the load order
+
+---
+
+## Troubleshooting
+
+### "Unknown type" Error in Script
+
+**Cause:** Referencing a gate that isn't loaded or defined yet.
+
+**Solution:**
+- Load the gate library first
+- Or define the gate earlier in the script
+
+### Placeholders Not Upgrading
+
+**Cause:** Gate name mismatch between scene and library.
+
+**Solution:**
+- Check the exact gate name (case-sensitive)
+- Verify you loaded the correct `.bin` file
+
+### Gates Disappearing After Reload
+
+**Cause:** Gate library not loaded before scene.
+
+**Solution:**
+- Always load `.bin` files before `.bps` files
+- Consider combining commonly used gates into one library
+
+### Script Definitions Not Working
+
+**Cause:** Order of definitions matters.
+
+**Solution:**
+- Define gates before using them
+- Put all `define...end` blocks at the top of your script

@@ -1,8 +1,73 @@
-You can create as many hierarchies as you like! There is **no hardcoded limit** on how many levels deep you can go (e.g., Gate A inside Gate B inside Gate C...).
+# Billyprints Documentation
 
-However, there are a few practical "engineer's warnings" to keep in mind:
+Welcome to the Billyprints documentation! Billyprints is a node-based logic gate editor and simulator.
 
-1. Memory Usage: Each time you place a Custom Gate, the app instantiates every single node that defines it. If you create a "Mega Gate" with 1,000 nodes and then place 10 of those into another gate, you've suddenly got 10,000 nodes running in the background.
-2. Stack Depth: The `Evaluate()` function uses recursion to pull signals through the hierarchy. While modern computers can handle thousands of recursive calls, a hierarchy that is hundreds of levels deep might eventually cause a "stack overflow" crash.
-3. Recursive Paradoxes (Cycles): Be careful not to create a "Logic Loop"—for example, putting Gate A inside Gate B, and then trying to put Gate B back inside Gate A. The app doesn't currently check for this, and it will cause an infinite loop and crash your editor.
-In short: For any reasonable circuit (like building a 64-bit CPU from scratch using just AND/NOT), you are perfectly safe! The new caching system I added ensures that even with massive hierarchies, the app only does the "thinking" it absolutely needs to do for each frame.
+## Getting Started
+
+- [Tutorial](Tutorial.md) - Build your first circuit step-by-step
+- [Keybindings](Keybindings.md) - Keyboard shortcuts reference
+
+## Script Language
+
+- [DSL Reference](DSL_Reference.md) - Complete script syntax reference
+- [Custom Gate Definitions](CustomGateDefinitions.md) - Define gates in scripts with `define...end`
+- [Examples](Examples.md) - Copy-paste ready circuit examples
+
+## Gate Libraries
+
+- [Gate Libraries](GateLibraries.md) - Save, load, and manage custom gate libraries
+- [FILE_FORMATS](FILE_FORMATS.md) - Technical reference for `.bps` and `.bin` files
+
+## Demos
+
+- [Demos](Demos.md) - Showcase circuits and demos
+
+---
+
+## Quick Reference
+
+### Built-in Gates
+
+| Gate | Description |
+|------|-------------|
+| `AND` | Output HIGH if both inputs HIGH |
+| `NOT` | Inverts the input |
+| `In` | Interactive input (switch/button) |
+| `Out` | Visual output (LED) |
+
+### Define Syntax
+
+```
+define GateName(in1, in2) -> (out1, out2):
+  out1 = in1 AND in2
+  out2 = NOT in1
+end
+```
+
+### Node Syntax
+
+```
+Type id @ x, y [flags]
+```
+
+### Connection Syntax
+
+```
+source.out -> target.in
+```
+
+---
+
+## Hierarchy and Performance
+
+You can create deeply nested gate hierarchies (Gate A inside Gate B inside Gate C, etc.) with no hardcoded limit.
+
+**Practical considerations:**
+
+1. **Memory Usage** - Each Custom Gate instance creates all its internal nodes. A gate with 1,000 nodes placed 10 times = 10,000 nodes.
+
+2. **Stack Depth** - Very deep hierarchies (hundreds of levels) may cause stack overflow due to recursive evaluation.
+
+3. **Avoid Cycles** - Don't create circular references (Gate A uses Gate B which uses Gate A). This causes infinite loops.
+
+For typical circuits (even building a 64-bit CPU from AND/NOT), performance is excellent thanks to evaluation caching.

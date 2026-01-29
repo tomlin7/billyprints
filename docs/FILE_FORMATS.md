@@ -4,7 +4,43 @@
 
 Scene files store the complete node graph layout including all nodes and their connections.
 
-### Format: BPS Version 1
+### Format: BPS Version 2 (Current)
+
+```
+HEADER
+  Offset  Size     Description
+  0       4        Magic number: "BPS2" (ASCII)
+
+DEPENDENCY SECTION (New in V2)
+          size_t   Custom gate type count
+
+  For each custom gate type used:
+          size_t   Type name length
+          N bytes  Type name (e.g., "HalfAdder", "MyXOR")
+
+NODES SECTION
+          size_t   Node count
+
+  For each node:
+          size_t   Type name length
+          N bytes  Type name (e.g., "AND", "NOT", "In", "Out", or custom gate name)
+          8 bytes  Position (ImVec2: 2 x float32)
+          int      Input slot count
+          int      Output slot count
+
+CONNECTIONS SECTION
+          size_t   Connection count
+
+  For each connection:
+          int      Input node ID (0-indexed, matches node order)
+          size_t   Input slot name length
+          N bytes  Input slot name (e.g., "in", "in0", "in1")
+          int      Output node ID
+          size_t   Output slot name length
+          N bytes  Output slot name (e.g., "out", "out0", "out1")
+```
+
+### Format: BPS Version 1 (Legacy)
 
 ```
 HEADER
@@ -16,26 +52,39 @@ NODES SECTION
 
   For each node:
           size_t   Type name length
-          N bytes  Type name (e.g., "AND", "NOT", "In", "Out", or custom gate name)
+          N bytes  Type name
           8 bytes  Position (ImVec2: 2 x float32)
 
 CONNECTIONS SECTION
           size_t   Connection count
 
   For each connection:
-          int      Input node ID (0-indexed, matches node order)
+          int      Input node ID
           size_t   Input slot name length
-          N bytes  Input slot name (e.g., "in", "A", "B")
+          N bytes  Input slot name
           int      Output node ID
           size_t   Output slot name length
-          N bytes  Output slot name (e.g., "out", "Q")
+          N bytes  Output slot name
 ```
+
+**Note:** BPS1 files are still supported for loading (backward compatibility). New saves always use BPS2.
+
+### Missing Gate Handling (BPS2)
+
+When loading a BPS2 scene with missing custom gates:
+
+1. **Warning banner** appears listing missing gate names
+2. **Placeholder nodes** are created for missing gates:
+   - Red/maroon color scheme
+   - Title shows "? GateName"
+   - Connections preserved
+   - Slot counts preserved (from BPS2 format)
+3. **Automatic upgrade** - Loading the gate library converts placeholders to real gates
 
 ### Limitations
 
-- **Custom gate definitions are NOT embedded** - If your scene uses custom gates, you must load the corresponding `.bin` file first
+- **Custom gate definitions are NOT embedded** - Load `.bin` files before scenes
 - **PinIn states not saved** - All inputs reset to default on load
-- **PinIn momentary mode not saved**
 - **Canvas zoom/pan position not saved**
 
 ### Usage

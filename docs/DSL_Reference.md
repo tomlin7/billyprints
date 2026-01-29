@@ -76,6 +76,61 @@ Any line starting with `//` is treated as a comment and ignored by the parser.
 AND n1 @ 100, 100
 ```
 
+### 4. Defining Custom Gates
+
+You can define custom gates directly in your script using the `define...end` syntax.
+
+**Format:**
+```
+define GateName(input1, input2, ...) -> (output1, output2, ...):
+  signal = expression
+  ...
+end
+```
+
+**Primitive Operations:**
+- `a AND b` - Logical AND
+- `NOT a` - Logical NOT
+- `GateName(args)` - Call a previously defined or loaded custom gate
+
+**Example - Building an OR gate:**
+```
+define OR(a, b) -> (out):
+  na = NOT a
+  nb = NOT b
+  t = na AND nb
+  out = NOT t
+end
+```
+
+**Example - Using a custom gate:**
+```
+define XOR(a, b) -> (out):
+  na = NOT a
+  nb = NOT b
+  t1 = a AND nb
+  t2 = na AND b
+  out = OR(t1, t2)
+end
+
+// Now use it in the circuit
+XOR gate1 @ 200, 100
+In sw1 @ 50, 50
+In sw2 @ 50, 150
+
+sw1 -> gate1.in0
+sw2 -> gate1.in1
+```
+
+**Rules:**
+- Gates must be defined before they are used
+- Nested calls are not allowed; use intermediate signals
+- Input/output order determines slot numbering (`in0`, `in1`, `out0`, `out1`)
+
+For detailed tutorials, see [CustomGateDefinitions.md](CustomGateDefinitions.md).
+
+---
+
 ## Standard Library
 
 The following node types are built-in:
@@ -85,9 +140,6 @@ The following node types are built-in:
 | `In` | 0 | 1 (`out`) | Interactive entry point (Switch/Button). |
 | `Out` | 1 (`in`) | 0 | Visual indicator (LED). |
 | `AND` | 2 (`in0`, `in1`) | 1 (`out`) | Output is HIGH only if both inputs are HIGH. |
-| `OR` | 2 (`in0`, `in1`) | 1 (`out`) | Output is HIGH if at least one input is HIGH. |
 | `NOT` | 1 (`in`) | 1 (`out`) | Inverts the input signal. |
-| `NAND`| 2 (`in0`, `in1`) | 1 (`out`) | AND followed by NOT. |
-| `NOR` | 2 (`in0`, `in1`) | 1 (`out`) | OR followed by NOT. |
-| `XOR` | 2 (`in0`, `in1`) | 1 (`out`) | Output is HIGH if inputs are different. |
-| `XNOR`| 2 (`in0`, `in1`) | 1 (`out`) | Output is HIGH if inputs are the same. |
+
+**Note:** Other gates (OR, XOR, NAND, etc.) must be defined by the user or loaded from a gate library. See [CustomGateDefinitions.md](CustomGateDefinitions.md) for examples.
