@@ -896,4 +896,16 @@ bool IsConnectingCompatibleSlot() {
   return false;
 }
 
+bool GetSlotPosition(void *node_id, const char *slot_title, bool is_input,
+                     ImVec2 *out_pos) {
+  IM_ASSERT(gCanvas != nullptr);
+  IM_ASSERT(out_pos != nullptr);
+  auto *impl = gCanvas->_Impl;
+  out_pos->x = impl->CachedData.GetFloat(
+      MakeSlotDataID("x", slot_title, node_id, is_input));
+  out_pos->y = impl->CachedData.GetFloat(
+      MakeSlotDataID("y", slot_title, node_id, is_input));
+  return true;
+}
+
 } // namespace ImNodes
