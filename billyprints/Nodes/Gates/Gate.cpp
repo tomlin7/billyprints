@@ -93,8 +93,15 @@ void Gate::Render() {
 
       auto *canvas = ImNodes::GetCurrentCanvas();
       ImColor originalConnectionColor = canvas->Colors[ImNodes::ColConnection];
-      canvas->Colors[ImNodes::ColConnection] =
-          signal ? activeColor : inactiveColor;
+
+      // Check if both nodes are selected for connection highlighting
+      bool bothSelected = selected && ((Node *)connection.inputNode)->selected;
+      if (bothSelected) {
+        canvas->Colors[ImNodes::ColConnection] = IM_COL32(0, 200, 255, 255);
+      } else {
+        canvas->Colors[ImNodes::ColConnection] =
+            signal ? activeColor : inactiveColor;
+      }
 
       if (!ImNodes::Connection(
               connection.inputNode, connection.inputSlot.c_str(),

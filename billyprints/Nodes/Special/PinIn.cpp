@@ -61,8 +61,16 @@ void PinIn::Render() {
       bool signal = Evaluate();
       auto *canvas = ImNodes::GetCurrentCanvas();
       ImColor originalConnectionColor = canvas->Colors[ImNodes::ColConnection];
-      canvas->Colors[ImNodes::ColConnection] =
-          signal ? IM_COL32(255, 160, 20, 255) : IM_COL32(80, 90, 100, 255);
+
+      // Check if both nodes are selected for connection highlighting
+      bool bothSelected = selected && ((Node *)connection.inputNode)->selected;
+      if (bothSelected) {
+        canvas->Colors[ImNodes::ColConnection] = IM_COL32(0, 200, 255, 255);
+      } else {
+        canvas->Colors[ImNodes::ColConnection] =
+            signal ? IM_COL32(255, 160, 20, 255) : IM_COL32(80, 90, 100, 255);
+      }
+
       if (!ImNodes::Connection(
               connection.inputNode, connection.inputSlot.c_str(),
               connection.outputNode, connection.outputSlot.c_str())) {
