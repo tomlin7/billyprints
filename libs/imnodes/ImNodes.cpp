@@ -139,6 +139,8 @@ struct _CanvasStateImpl {
   /// The ID of the pending top-most hovered node determined thus far this
   /// frame.
   ImGuiID PendingHoveredNodeId = 0;
+  /// Flag indicating if the last rendered connection was clicked.
+  bool LastConnectionClicked = false;
 };
 
 CanvasState::CanvasState() noexcept {
@@ -689,7 +691,11 @@ bool Connection(void *input_node, const char *input_slot, void *output_node,
 
   bool curve_hovered = RenderConnection(input_slot_pos, output_slot_pos,
                                         canvas->Style.CurveThickness);
+  impl->LastConnectionClicked = false;
   if (curve_hovered && ImGui::IsWindowHovered()) {
+    if (ImGui::IsMouseClicked(0)) {
+      impl->LastConnectionClicked = true;
+    }
     if (ImGui::IsMouseDoubleClicked(0))
       is_connected = false;
   }
@@ -732,6 +738,12 @@ bool Connection(void *input_node, const char *input_slot, void *output_node,
 }
 
 CanvasState *GetCurrentCanvas() { return gCanvas; }
+
+bool IsLastConnectionClicked() {
+  if (gCanvas == nullptr)
+    return false;
+  return gCanvas->_Impl->LastConnectionClicked;
+}
 
 bool BeginSlot(const char *title, int kind) {
   auto *canvas = gCanvas;

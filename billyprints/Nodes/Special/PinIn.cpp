@@ -55,17 +55,19 @@ void PinIn::Render() {
     ImNodes::Ez::OutputSlots(outputSlots.data(), outputSlotCount);
 
     // Logic for connections
-    for (const Connection &connection : connections) {
+    for (Connection &connection : connections) {
       if (connection.outputNode != this)
         continue;
       bool signal = Evaluate();
+      ImColor selectedColor = IM_COL32(0, 200, 255, 255);
+
       auto *canvas = ImNodes::GetCurrentCanvas();
       ImColor originalConnectionColor = canvas->Colors[ImNodes::ColConnection];
 
-      // Check if both nodes are selected for connection highlighting
-      bool bothSelected = selected && ((Node *)connection.inputNode)->selected;
-      if (bothSelected) {
-        canvas->Colors[ImNodes::ColConnection] = IM_COL32(0, 200, 255, 255);
+      // Check if connection is selected or both nodes are selected
+      bool bothNodesSelected = selected && ((Node *)connection.inputNode)->selected;
+      if (connection.selected || bothNodesSelected) {
+        canvas->Colors[ImNodes::ColConnection] = selectedColor;
       } else {
         canvas->Colors[ImNodes::ColConnection] =
             signal ? IM_COL32(255, 160, 20, 255) : IM_COL32(80, 90, 100, 255);
@@ -76,6 +78,17 @@ void PinIn::Render() {
               connection.outputNode, connection.outputSlot.c_str())) {
         ((Node *)connection.inputNode)->DeleteConnection(connection);
         ((Node *)connection.outputNode)->DeleteConnection(connection);
+      } else if (ImNodes::IsLastConnectionClicked()) {
+        // Toggle selection on click - update both copies
+        connection.selected = !connection.selected;
+        // Sync selection to the other node's copy
+        Node *otherNode = (Node *)connection.inputNode;
+        for (Connection &otherConn : otherNode->connections) {
+          if (otherConn == connection) {
+            otherConn.selected = connection.selected;
+            break;
+          }
+        }
       }
       canvas->Colors[ImNodes::ColConnection] = originalConnectionColor;
     }

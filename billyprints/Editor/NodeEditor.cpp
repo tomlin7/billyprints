@@ -274,6 +274,12 @@ void NodeEditor::HandleKeyBindings() {
       showConnectionDropMenu = false;
     } else {
       DeselectAllNodes();
+      // Also deselect all connections
+      for (auto *node : nodes) {
+        for (auto &conn : node->connections) {
+          conn.selected = false;
+        }
+      }
     }
   }
 
@@ -284,8 +290,29 @@ void NodeEditor::HandleKeyBindings() {
     DuplicateSelectedNodes();
   }
 
-  // Delete or Backspace: Delete selected (Delete handled in RenderNodes)
-  if (ImGui::IsKeyPressed(ImGuiKey_Backspace)) {
+  // Delete or Backspace: Delete selected nodes and connections
+  if (ImGui::IsKeyPressed(ImGuiKey_Backspace) || ImGui::IsKeyPressed(ImGuiKey_Delete)) {
+    // First, delete selected connections
+    for (auto *node : nodes) {
+      for (auto it = node->connections.begin(); it != node->connections.end();) {
+        if (it->selected) {
+          // Delete from both nodes
+          Node *inputNode = (Node *)it->inputNode;
+          Node *outputNode = (Node *)it->outputNode;
+          if (inputNode != node) {
+            inputNode->DeleteConnection(*it);
+          }
+          if (outputNode != node) {
+            outputNode->DeleteConnection(*it);
+          }
+          it = node->connections.erase(it);
+        } else {
+          ++it;
+        }
+      }
+    }
+
+    // Then, delete selected nodes
     for (auto *node : nodes) {
       if (node->selected) {
         nodeToDelete = node;

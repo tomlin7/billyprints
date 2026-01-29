@@ -91,6 +91,8 @@ IMGUI_API bool GetNewConnection(void** input_node, const char** input_slot_title
 IMGUI_API bool GetPendingConnection(void** node_id, const char** slot_title, int* slot_kind);
 /// Render a connection. Returns `true` when connection is present, `false` if it is deleted.
 IMGUI_API bool Connection(void* input_node, const char* input_slot, void* output_node, const char* output_slot);
+/// Returns `true` if the last rendered connection was clicked (single click). Call immediately after Connection().
+IMGUI_API bool IsLastConnectionClicked();
 /// Returns active canvas state when called between BeginCanvas() and EndCanvas(). Returns nullptr otherwise. This function is not thread-safe.
 IMGUI_API CanvasState* GetCurrentCanvas();
 /// Convert kind id to input type.
