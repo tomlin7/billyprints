@@ -798,6 +798,18 @@ void NodeEditor::RenderConnectionDropMenu() {
           conn.inputNode = newNode;
           conn.inputSlot = newNode->inputSlots[0].title;
         } else {
+          // Input pins only accept single connection - remove existing one
+          Node *inputNode = (Node *)dropSourceNode;
+          for (auto it = inputNode->connections.begin();
+               it != inputNode->connections.end(); ++it) {
+            if (it->inputNode == dropSourceNode &&
+                it->inputSlot == dropSourceSlot) {
+              ((Node *)it->outputNode)->DeleteConnection(*it);
+              inputNode->connections.erase(it);
+              break;
+            }
+          }
+
           conn.inputNode = dropSourceNode;
           conn.inputSlot = dropSourceSlot;
           conn.outputNode = newNode;
@@ -831,6 +843,18 @@ void NodeEditor::RenderConnectionDropMenu() {
             conn.inputNode = newNode;
             conn.inputSlot = newNode->inputSlots[0].title;
           } else {
+            // Input pins only accept single connection - remove existing one
+            Node *inputNode = (Node *)dropSourceNode;
+            for (auto it = inputNode->connections.begin();
+                 it != inputNode->connections.end(); ++it) {
+              if (it->inputNode == dropSourceNode &&
+                  it->inputSlot == dropSourceSlot) {
+                ((Node *)it->outputNode)->DeleteConnection(*it);
+                inputNode->connections.erase(it);
+                break;
+              }
+            }
+
             conn.inputNode = dropSourceNode;
             conn.inputSlot = dropSourceSlot;
             conn.outputNode = newNode;
