@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(msbuild:*)",
+      "Bash(where:*)",
+      "Bash(cmd /c \"where msbuild\")",
+      "Bash(cmd /c \"call \"\"C:\\\\Program Files\\\\Microsoft Visual Studio\\\\2022\\\\Community\\\\Common7\\\\Tools\\\\VsDevCmd.bat\"\" -no_logo && msbuild Billyprints.sln /p:Configuration=Debug /p:Platform=x64 /v:minimal\")"
+    ]
+  }
+}
