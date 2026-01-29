@@ -17,6 +17,9 @@ Node *nodeToDelete = nullptr;
 bool nodeHoveredForContextMenu = false;
 
 void NodeEditor::RenderDock() {
+  if (!showDock)
+    return;
+
   float dockHeight = 84.0f;
   float iconSize = 48.0f;
   float iconPadding = 20.0f;
@@ -226,15 +229,13 @@ void NodeEditor::HandleKeyBindings() {
 
   bool ctrl = ImGui::GetIO().KeyCtrl;
   bool shift = ImGui::GetIO().KeyShift;
+  auto *canvas = ImNodes::GetCurrentCanvas();
+
+  // === SELECTION ===
 
   // Ctrl+A: Select all
   if (ctrl && ImGui::IsKeyPressed(ImGuiKey_A)) {
     SelectAllNodes();
-  }
-
-  // Ctrl+D: Duplicate selected
-  if (ctrl && ImGui::IsKeyPressed(ImGuiKey_D)) {
-    DuplicateSelectedNodes();
   }
 
   // Escape: Deselect all / cancel connection drop menu
@@ -246,6 +247,40 @@ void NodeEditor::HandleKeyBindings() {
     }
   }
 
+  // === EDITING ===
+
+  // Ctrl+D: Duplicate selected
+  if (ctrl && ImGui::IsKeyPressed(ImGuiKey_D)) {
+    DuplicateSelectedNodes();
+  }
+
+  // Delete or Backspace: Delete selected (Delete handled in RenderNodes)
+  if (ImGui::IsKeyPressed(ImGuiKey_Backspace)) {
+    for (auto *node : nodes) {
+      if (node->selected) {
+        nodeToDelete = node;
+        break;
+      }
+    }
+  }
+
+  // E: Edit selected node (opens gate editor)
+  if (ImGui::IsKeyPressed(ImGuiKey_E) && !ctrl) {
+    for (auto *node : nodes) {
+      if (node->selected) {
+        nodeToEdit = node;
+        break;
+      }
+    }
+  }
+
+  // G: Create new gate
+  if (ImGui::IsKeyPressed(ImGuiKey_G) && !ctrl) {
+    openCreateGatePopup = true;
+  }
+
+  // === NAVIGATION ===
+
   // F: Frame selection (or all nodes if nothing selected)
   if (ImGui::IsKeyPressed(ImGuiKey_F) && !ctrl) {
     FrameSelectedNodes();
@@ -256,10 +291,40 @@ void NodeEditor::HandleKeyBindings() {
     ResetView();
   }
 
+  // +/=: Zoom in
+  if (ImGui::IsKeyPressed(ImGuiKey_Equal) || ImGui::IsKeyPressed(ImGuiKey_KeypadAdd)) {
+    if (canvas) {
+      canvas->Zoom = ImMin(canvas->Zoom * 1.2f, 4.0f);
+    }
+  }
+
+  // -: Zoom out
+  if (ImGui::IsKeyPressed(ImGuiKey_Minus) || ImGui::IsKeyPressed(ImGuiKey_KeypadSubtract)) {
+    if (canvas) {
+      canvas->Zoom = ImMax(canvas->Zoom / 1.2f, 0.25f);
+    }
+  }
+
+  // Ctrl+0: Reset zoom only (keep position)
+  if (ctrl && ImGui::IsKeyPressed(ImGuiKey_0)) {
+    if (canvas) {
+      canvas->Zoom = 1.0f;
+    }
+  }
+
+  // === PANELS ===
+
   // Tab: Toggle script editor
   if (ImGui::IsKeyPressed(ImGuiKey_Tab) && !ctrl) {
     showScriptEditor = !showScriptEditor;
   }
+
+  // D: Toggle dock
+  if (ImGui::IsKeyPressed(ImGuiKey_D) && !ctrl) {
+    showDock = !showDock;
+  }
+
+  // === FILE OPERATIONS ===
 
   // Ctrl+S: Save gates
   if (ctrl && ImGui::IsKeyPressed(ImGuiKey_S)) {
@@ -270,6 +335,8 @@ void NodeEditor::HandleKeyBindings() {
   if (ctrl && ImGui::IsKeyPressed(ImGuiKey_O)) {
     openLoadGatePopup = true;
   }
+
+  // === QUICK ACTIONS ===
 
   // Space: Open context menu at cursor (when not over a node)
   if (ImGui::IsKeyPressed(ImGuiKey_Space) && !nodeHoveredForContextMenu) {
@@ -624,7 +691,8 @@ void NodeEditor::Redraw() {
         ImGui::EndMenu();
       }
       if (ImGui::BeginMenu("View")) {
-        ImGui::MenuItem("Scene Script", NULL, &showScriptEditor);
+        ImGui::MenuItem("Scene Script", "Tab", &showScriptEditor);
+        ImGui::MenuItem("Dock", "D", &showDock);
         ImGui::EndMenu();
       }
       ImGui::EndMenuBar();

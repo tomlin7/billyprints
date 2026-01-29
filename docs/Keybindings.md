@@ -7,27 +7,34 @@ Keybindings are active when the canvas is focused and no text input field is act
 | Key | Action |
 |-----|--------|
 | `Ctrl+A` | Select all nodes |
-| `Escape` | Deselect all nodes (or cancel connection drop menu if open) |
+| `Escape` | Deselect all nodes / cancel connection drop menu |
 
 ## Editing
 
 | Key | Action |
 |-----|--------|
 | `Delete` | Delete selected nodes |
+| `Backspace` | Delete selected nodes (alternative) |
 | `Ctrl+D` | Duplicate selected nodes |
+| `E` | Edit selected node (opens gate editor) |
+| `G` | Create new custom gate |
 
 ## Navigation
 
 | Key | Action |
 |-----|--------|
-| `F` | Frame selection (centers view on selected nodes, or all nodes if none selected) |
+| `F` | Frame selection (centers view on selected nodes, or all if none selected) |
 | `Home` | Reset view (zoom to 1.0, offset to origin) |
+| `+` / `=` | Zoom in |
+| `-` | Zoom out |
+| `Ctrl+0` | Reset zoom only (keep current position) |
 
 ## Panels
 
 | Key | Action |
 |-----|--------|
 | `Tab` | Toggle script editor panel |
+| `D` | Toggle dock (quick spawn bar) |
 
 ## File Operations
 

@@ -55,6 +55,7 @@ class NodeEditor {
   bool showCodeEditor = false;
   std::string editingCode;
   Gate *gateBeingEdited = nullptr;
+  bool showDock = true;
 
   void HandleKeyBindings();
   void SelectAllNodes();
