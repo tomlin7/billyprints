@@ -56,6 +56,13 @@ class NodeEditor {
   std::string editingCode;
   Gate *gateBeingEdited = nullptr;
 
+  void HandleKeyBindings();
+  void SelectAllNodes();
+  void DeselectAllNodes();
+  void DuplicateSelectedNodes();
+  void FrameSelectedNodes();
+  void ResetView();
+
 public:
   NodeEditor();
   void Redraw();

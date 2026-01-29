@@ -137,6 +137,146 @@ void NodeEditor::DuplicateNode(Node *node) {
   }
 }
 
+void NodeEditor::SelectAllNodes() {
+  for (auto *node : nodes) {
+    node->selected = true;
+  }
+}
+
+void NodeEditor::DeselectAllNodes() {
+  for (auto *node : nodes) {
+    node->selected = false;
+  }
+}
+
+void NodeEditor::DuplicateSelectedNodes() {
+  std::vector<Node *> selected;
+  for (auto *node : nodes) {
+    if (node->selected) {
+      selected.push_back(node);
+    }
+  }
+  // Deselect originals, duplicate and select new ones
+  for (auto *node : selected) {
+    node->selected = false;
+    Node *newNode = CreateNodeByType(node->title);
+    if (newNode) {
+      newNode->pos = ImVec2(node->pos.x + 30.0f, node->pos.y + 30.0f);
+      newNode->selected = true;
+      nodes.push_back(newNode);
+    }
+  }
+}
+
+void NodeEditor::FrameSelectedNodes() {
+  auto *canvas = ImNodes::GetCurrentCanvas();
+  if (!canvas)
+    return;
+
+  // Find bounding box of selected nodes
+  bool hasSelection = false;
+  ImVec2 minPos(FLT_MAX, FLT_MAX);
+  ImVec2 maxPos(-FLT_MAX, -FLT_MAX);
+
+  for (auto *node : nodes) {
+    if (node->selected) {
+      hasSelection = true;
+      minPos.x = ImMin(minPos.x, node->pos.x);
+      minPos.y = ImMin(minPos.y, node->pos.y);
+      maxPos.x = ImMax(maxPos.x, node->pos.x + 150.0f); // Approximate node width
+      maxPos.y = ImMax(maxPos.y, node->pos.y + 80.0f);  // Approximate node height
+    }
+  }
+
+  if (!hasSelection) {
+    // If nothing selected, frame all nodes
+    for (auto *node : nodes) {
+      minPos.x = ImMin(minPos.x, node->pos.x);
+      minPos.y = ImMin(minPos.y, node->pos.y);
+      maxPos.x = ImMax(maxPos.x, node->pos.x + 150.0f);
+      maxPos.y = ImMax(maxPos.y, node->pos.y + 80.0f);
+    }
+  }
+
+  if (minPos.x == FLT_MAX)
+    return; // No nodes at all
+
+  // Center the view on the bounding box
+  ImVec2 center = ImVec2((minPos.x + maxPos.x) * 0.5f,
+                         (minPos.y + maxPos.y) * 0.5f);
+  ImVec2 canvasSize = ImGui::GetContentRegionAvail();
+  canvas->Offset = ImVec2(canvasSize.x * 0.5f - center.x * canvas->Zoom,
+                          canvasSize.y * 0.5f - center.y * canvas->Zoom);
+}
+
+void NodeEditor::ResetView() {
+  auto *canvas = ImNodes::GetCurrentCanvas();
+  if (!canvas)
+    return;
+  canvas->Zoom = 1.0f;
+  canvas->Offset = ImVec2(0, 0);
+}
+
+void NodeEditor::HandleKeyBindings() {
+  // Only handle keys when canvas window is focused and no text input is active
+  if (!ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows))
+    return;
+  if (ImGui::GetIO().WantTextInput)
+    return;
+
+  bool ctrl = ImGui::GetIO().KeyCtrl;
+  bool shift = ImGui::GetIO().KeyShift;
+
+  // Ctrl+A: Select all
+  if (ctrl && ImGui::IsKeyPressed(ImGuiKey_A)) {
+    SelectAllNodes();
+  }
+
+  // Ctrl+D: Duplicate selected
+  if (ctrl && ImGui::IsKeyPressed(ImGuiKey_D)) {
+    DuplicateSelectedNodes();
+  }
+
+  // Escape: Deselect all / cancel connection drop menu
+  if (ImGui::IsKeyPressed(ImGuiKey_Escape)) {
+    if (showConnectionDropMenu) {
+      showConnectionDropMenu = false;
+    } else {
+      DeselectAllNodes();
+    }
+  }
+
+  // F: Frame selection (or all nodes if nothing selected)
+  if (ImGui::IsKeyPressed(ImGuiKey_F) && !ctrl) {
+    FrameSelectedNodes();
+  }
+
+  // Home: Reset view
+  if (ImGui::IsKeyPressed(ImGuiKey_Home)) {
+    ResetView();
+  }
+
+  // Tab: Toggle script editor
+  if (ImGui::IsKeyPressed(ImGuiKey_Tab) && !ctrl) {
+    showScriptEditor = !showScriptEditor;
+  }
+
+  // Ctrl+S: Save gates
+  if (ctrl && ImGui::IsKeyPressed(ImGuiKey_S)) {
+    openSaveGatePopup = true;
+  }
+
+  // Ctrl+O: Open/Load gates
+  if (ctrl && ImGui::IsKeyPressed(ImGuiKey_O)) {
+    openLoadGatePopup = true;
+  }
+
+  // Space: Open context menu at cursor (when not over a node)
+  if (ImGui::IsKeyPressed(ImGuiKey_Space) && !nodeHoveredForContextMenu) {
+    ImGui::OpenPopup("NodesContextMenu");
+  }
+}
+
 void NodeEditor::UpdateGateDefinitionFromCurrentScene(const std::string &name) {
   for (auto &def : customGateDefinitions) {
     if (def.name == name) {
@@ -521,6 +661,8 @@ void NodeEditor::Redraw() {
 
   ImNodes::Ez::BeginCanvas();
   canvasWindowPos = ImGui::GetWindowPos();
+
+  HandleKeyBindings();
 
   // --- Cyberpunk Visuals Start ---
 
