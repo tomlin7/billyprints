@@ -32,6 +32,8 @@ struct GateDefinition {
 };
 
 Node *CreateNodeByType(const std::string &type);
+Node *CreateNodeByTypeOrPlaceholder(const std::string &type, int inputHint = 1,
+                                    int outputHint = 1);
 
 class CustomGate : public Gate {
 public:

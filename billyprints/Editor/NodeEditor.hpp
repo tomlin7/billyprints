@@ -4,6 +4,7 @@
 #include "Gates.hpp"
 #include "Nodes.hpp"
 #include <filesystem>
+#include <set>
 
 namespace Billyprints {
 class NodeEditor {
@@ -37,6 +38,12 @@ class NodeEditor {
   // Scene save/load
   void SaveScene(const std::string &filename);
   void LoadScene(const std::string &filename);
+
+  // Missing gate tracking (for custom gates not loaded)
+  std::vector<std::string> missingGateTypes;
+  std::set<PlaceholderGate *> placeholderNodes;
+  bool showMissingGatesBanner = false;
+  void TryUpgradePlaceholders();
 
   std::string editingGateName;
   std::string originalSceneScript;

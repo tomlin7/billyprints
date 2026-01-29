@@ -3,6 +3,7 @@
 #include "../Special/PinOut.hpp"
 #include "AND.hpp"
 #include "NOT.hpp"
+#include "PlaceholderGate.hpp"
 
 namespace Billyprints {
 
@@ -24,6 +25,17 @@ Node *CreateNodeByType(const std::string &type) {
   }
 
   return nullptr;
+}
+
+Node *CreateNodeByTypeOrPlaceholder(const std::string &type, int inputHint,
+                                    int outputHint) {
+  // Try to create the real node first
+  Node *node = CreateNodeByType(type);
+  if (node)
+    return node;
+
+  // If type not found, create a placeholder
+  return new PlaceholderGate(type, inputHint, outputHint);
 }
 
 CustomGate::CustomGate(const GateDefinition &def)

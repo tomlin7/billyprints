@@ -757,30 +757,6 @@ void NodeEditor::Redraw() {
     mainWinPos = ImGui::GetWindowPos();
     mainWinWidth = ImGui::GetWindowWidth();
 
-    // Editing Banner
-    if (!editingGateName.empty()) {
-      ImGui::PushStyleColor(ImGuiCol_ChildBg, IM_COL32(180, 100, 20, 200));
-      ImGui::BeginChild("EditingBanner", ImVec2(0, 40), true,
-                        ImGuiWindowFlags_NoScrollbar |
-                            ImGuiWindowFlags_NoScrollWithMouse);
-      ImGui::Text("Editing Gate: %s", editingGateName.c_str());
-      ImGui::SameLine(ImGui::GetContentRegionAvail().x - 200);
-      if (ImGui::Button("Save and Close", ImVec2(120, 0))) {
-        UpdateGateDefinitionFromCurrentScene(editingGateName);
-        currentScript = originalSceneScript;
-        UpdateNodesFromScript();
-        editingGateName = "";
-      }
-      ImGui::SameLine();
-      if (ImGui::Button("Discard", ImVec2(80, 0))) {
-        currentScript = originalSceneScript;
-        UpdateNodesFromScript();
-        editingGateName = "";
-      }
-      ImGui::EndChild();
-      ImGui::PopStyleColor();
-    }
-
     if (ImGui::BeginMenuBar()) {
       if (ImGui::BeginMenu("File")) {
         if (ImGui::MenuItem("Open Scene..", "Ctrl+O")) {
@@ -815,6 +791,72 @@ void NodeEditor::Redraw() {
         ImGui::EndMenu();
       }
       ImGui::EndMenuBar();
+    }
+
+    // Editing Banner
+    if (!editingGateName.empty()) {
+      ImGui::PushStyleColor(ImGuiCol_ChildBg, IM_COL32(180, 100, 20, 200));
+      ImGui::BeginChild("EditingBanner", ImVec2(0, 40), true,
+                        ImGuiWindowFlags_NoScrollbar |
+                            ImGuiWindowFlags_NoScrollWithMouse);
+      ImGui::Text("Editing Gate: %s", editingGateName.c_str());
+      ImGui::SameLine(ImGui::GetContentRegionAvail().x - 200);
+      if (ImGui::Button("Save and Close", ImVec2(120, 0))) {
+        UpdateGateDefinitionFromCurrentScene(editingGateName);
+        currentScript = originalSceneScript;
+        UpdateNodesFromScript();
+        editingGateName = "";
+      }
+      ImGui::SameLine();
+      if (ImGui::Button("Discard", ImVec2(80, 0))) {
+        currentScript = originalSceneScript;
+        UpdateNodesFromScript();
+        editingGateName = "";
+      }
+      ImGui::EndChild();
+      ImGui::PopStyleColor();
+    }
+
+    // Missing Gates Warning Banner
+    if (showMissingGatesBanner && !missingGateTypes.empty()) {
+      ImGui::PushStyleColor(ImGuiCol_ChildBg, IM_COL32(150, 50, 50, 220));
+      ImGui::BeginChild("MissingGatesBanner", ImVec2(0, 50), true,
+                        ImGuiWindowFlags_NoScrollbar |
+                            ImGuiWindowFlags_NoScrollWithMouse);
+
+      // Build list of missing types (truncate if too many)
+      std::string typeList;
+      for (size_t i = 0; i < missingGateTypes.size() && i < 5; i++) {
+        if (i > 0)
+          typeList += ", ";
+        typeList += missingGateTypes[i];
+      }
+      if (missingGateTypes.size() > 5) {
+        typeList +=
+            " (+" + std::to_string(missingGateTypes.size() - 5) + " more)";
+      }
+
+      // First line with buttons on right
+      float firstLineY = ImGui::GetCursorPosY();
+      ImGui::TextColored(ImVec4(1.0f, 0.9f, 0.3f, 1.0f), "Warning:");
+      ImGui::SameLine();
+      ImGui::Text("Scene uses custom gates that are not loaded:");
+      ImGui::SameLine(ImGui::GetWindowWidth() - 190);
+      ImGui::SetCursorPosY(firstLineY);
+      if (ImGui::Button("Load Library...", ImVec2(100, 0))) {
+        openLoadGatePopup = true;
+      }
+      ImGui::SameLine();
+      if (ImGui::Button("Dismiss", ImVec2(70, 0))) {
+        showMissingGatesBanner = false;
+      }
+
+      // Second line: gate list
+      ImGui::SetCursorPosY(firstLineY + ImGui::GetTextLineHeightWithSpacing());
+      ImGui::TextColored(ImVec4(1.0f, 0.7f, 0.7f, 1.0f), "%s", typeList.c_str());
+
+      ImGui::EndChild();
+      ImGui::PopStyleColor();
     }
 
     if (openCreateGatePopup) {

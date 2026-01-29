@@ -1,13 +1,23 @@
 #include "../Nodes/Gates/CustomGate.hpp"
+#include "../Nodes/Gates/PlaceholderGate.hpp"
 #include "NodeEditor.hpp"
 #include <ImNodes.h>
+#include <algorithm>
 #include <functional>
 #include <imgui.h>
 #include <map>
+#include <set>
 #include <string>
 #include <vector>
 
 namespace Billyprints {
+
+// Helper to check if a type is a built-in type (actually created by CreateNodeByType)
+static bool IsBuiltInType(const std::string &type) {
+  // Only types that CreateNodeByType can actually create without the registry
+  return type == "AND" || type == "NOT" || type == "In" || type == "Out" ||
+         type == "Input" || type == "Output";
+}
 
 void NodeEditor::CreateGate() {
   GateDefinition def;
@@ -198,6 +208,87 @@ void NodeEditor::LoadGates(const std::string &filename) {
     availableGates.push_back([def]() -> Gate * { return new CustomGate(def); });
   }
   fclose(f);
+
+  // Try to upgrade any placeholder nodes that may now have their definitions
+  TryUpgradePlaceholders();
+}
+
+void NodeEditor::TryUpgradePlaceholders() {
+  if (placeholderNodes.empty())
+    return;
+
+  std::vector<PlaceholderGate *> upgraded;
+
+  for (auto *placeholder : placeholderNodes) {
+    // Check if the gate definition is now available
+    if (CustomGate::GateRegistry.count(placeholder->missingTypeName)) {
+      // Create the real gate
+      auto *realGate =
+          new CustomGate(CustomGate::GateRegistry[placeholder->missingTypeName]);
+
+      // Copy position and ID
+      realGate->pos = placeholder->pos;
+      realGate->id = placeholder->id;
+      realGate->selected = placeholder->selected;
+
+      // Transfer connections
+      for (auto &conn : placeholder->connections) {
+        // Update the connection's node pointers
+        if (conn.inputNode == placeholder) {
+          conn.inputNode = realGate;
+        }
+        if (conn.outputNode == placeholder) {
+          conn.outputNode = realGate;
+        }
+
+        // Add to real gate's connection list
+        realGate->connections.push_back(conn);
+
+        // Update the other node's reference to point to real gate
+        Node *otherNode = (conn.inputNode == realGate)
+                              ? (Node *)conn.outputNode
+                              : (Node *)conn.inputNode;
+
+        for (auto &otherConn : otherNode->connections) {
+          if (otherConn.inputNode == placeholder) {
+            otherConn.inputNode = realGate;
+          }
+          if (otherConn.outputNode == placeholder) {
+            otherConn.outputNode = realGate;
+          }
+        }
+      }
+
+      // Replace in nodes list
+      auto it = std::find(nodes.begin(), nodes.end(), (Node *)placeholder);
+      if (it != nodes.end()) {
+        *it = realGate;
+      }
+
+      upgraded.push_back(placeholder);
+    }
+  }
+
+  // Remove upgraded placeholders from tracking and delete them
+  for (auto *p : upgraded) {
+    placeholderNodes.erase(p);
+    delete p;
+  }
+
+  // Update the missing types list and banner state
+  if (placeholderNodes.empty()) {
+    showMissingGatesBanner = false;
+    missingGateTypes.clear();
+  } else {
+    // Rebuild missing types list from remaining placeholders
+    missingGateTypes.clear();
+    for (auto *p : placeholderNodes) {
+      if (std::find(missingGateTypes.begin(), missingGateTypes.end(),
+                    p->missingTypeName) == missingGateTypes.end()) {
+        missingGateTypes.push_back(p->missingTypeName);
+      }
+    }
+  }
 }
 
 void NodeEditor::SaveScene(const std::string &filename) {
@@ -209,9 +300,31 @@ void NodeEditor::SaveScene(const std::string &filename) {
   std::map<Node *, int> nodePtrToId;
   int idCounter = 0;
 
-  // Write magic number for scene files
-  const char magic[4] = {'B', 'P', 'S', '1'}; // Billyprints Scene v1
+  // Write magic number for scene files (BPS2 format)
+  const char magic[4] = {'B', 'P', 'S', '2'}; // Billyprints Scene v2
   fwrite(magic, 1, 4, f);
+
+  // Collect custom gate types used in the scene
+  std::set<std::string> customTypesUsed;
+  for (auto *node : nodes) {
+    std::string type = node->title;
+    // For PlaceholderGate, use the original missing type name
+    if (auto *placeholder = dynamic_cast<PlaceholderGate *>(node)) {
+      type = placeholder->missingTypeName;
+    }
+    if (!IsBuiltInType(type)) {
+      customTypesUsed.insert(type);
+    }
+  }
+
+  // Write custom gate dependency section
+  size_t customTypeCount = customTypesUsed.size();
+  fwrite(&customTypeCount, sizeof(size_t), 1, f);
+  for (const auto &typeName : customTypesUsed) {
+    size_t len = typeName.size();
+    fwrite(&len, sizeof(size_t), 1, f);
+    fwrite(typeName.c_str(), 1, len, f);
+  }
 
   // Write node count
   size_t nodeCount = nodes.size();
@@ -221,14 +334,23 @@ void NodeEditor::SaveScene(const std::string &filename) {
   for (auto *node : nodes) {
     nodePtrToId[node] = idCounter++;
 
-    // Node type
+    // Node type (use original type name for placeholders)
     std::string type = node->title;
+    if (auto *placeholder = dynamic_cast<PlaceholderGate *>(node)) {
+      type = placeholder->missingTypeName;
+    }
     size_t typeLen = type.size();
     fwrite(&typeLen, sizeof(size_t), 1, f);
     fwrite(type.c_str(), 1, typeLen, f);
 
     // Node position
     fwrite(&node->pos, sizeof(ImVec2), 1, f);
+
+    // Slot counts (new in BPS2 - needed for placeholder reconstruction)
+    int inputCount = node->inputSlotCount;
+    int outputCount = node->outputSlotCount;
+    fwrite(&inputCount, sizeof(int), 1, f);
+    fwrite(&outputCount, sizeof(int), 1, f);
   }
 
   // Collect unique connections (only from output side to avoid duplicates)
@@ -276,16 +398,53 @@ void NodeEditor::LoadScene(const std::string &filename) {
   // Verify magic number
   char magic[4];
   fread(magic, 1, 4, f);
-  if (magic[0] != 'B' || magic[1] != 'P' || magic[2] != 'S' || magic[3] != '1') {
+
+  bool isV1 =
+      (magic[0] == 'B' && magic[1] == 'P' && magic[2] == 'S' && magic[3] == '1');
+  bool isV2 =
+      (magic[0] == 'B' && magic[1] == 'P' && magic[2] == 'S' && magic[3] == '2');
+
+  if (!isV1 && !isV2) {
     fclose(f);
     return; // Invalid file format
   }
 
-  // Clear existing nodes
+  // Clear existing nodes and state
   for (auto *node : nodes) {
     delete node;
   }
   nodes.clear();
+  missingGateTypes.clear();
+  placeholderNodes.clear();
+  showMissingGatesBanner = false;
+
+  // Read custom gate dependency section (BPS2 only)
+  if (isV2) {
+    size_t customTypeCount = 0;
+    fread(&customTypeCount, sizeof(size_t), 1, f);
+
+    for (size_t i = 0; i < customTypeCount; i++) {
+      size_t len = 0;
+      fread(&len, sizeof(size_t), 1, f);
+      std::string typeName;
+      typeName.resize(len);
+      fread(&typeName[0], 1, len, f);
+
+      // Check if this custom type is available
+      if (!CustomGate::GateRegistry.count(typeName)) {
+        // Type is missing - add to missing list if not already there
+        if (std::find(missingGateTypes.begin(), missingGateTypes.end(),
+                      typeName) == missingGateTypes.end()) {
+          missingGateTypes.push_back(typeName);
+        }
+      }
+    }
+
+    if (!missingGateTypes.empty()) {
+      showMissingGatesBanner = true;
+      debugMsg = "Missing gates detected: " + std::to_string(missingGateTypes.size());
+    }
+  }
 
   // Read node count
   size_t nodeCount = 0;
@@ -307,8 +466,22 @@ void NodeEditor::LoadScene(const std::string &filename) {
     ImVec2 pos;
     fread(&pos, sizeof(ImVec2), 1, f);
 
-    // Create node
+    // Slot counts (BPS2 only)
+    int inputCount = 1;
+    int outputCount = 1;
+    if (isV2) {
+      fread(&inputCount, sizeof(int), 1, f);
+      fread(&outputCount, sizeof(int), 1, f);
+    }
+
+    // Create node (use placeholder for missing custom gates)
     Node *node = CreateNodeByType(type);
+    if (!node && !IsBuiltInType(type)) {
+      // Missing custom gate - create placeholder
+      node = new PlaceholderGate(type, inputCount, outputCount);
+      placeholderNodes.insert(static_cast<PlaceholderGate *>(node));
+    }
+
     if (node) {
       node->pos = pos;
       node->id = "n" + std::to_string(i);

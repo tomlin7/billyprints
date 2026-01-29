@@ -5,6 +5,7 @@
 #include "AND.hpp"
 #include "CustomGate.hpp"
 #include "NOT.hpp"
+#include "PlaceholderGate.hpp"
 
 #include <functional>
 

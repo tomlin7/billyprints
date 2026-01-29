@@ -105,6 +105,7 @@
     <ClInclude Include="billyprints\Nodes\Gates\CustomGate.hpp" />
     <ClInclude Include="billyprints\Nodes\Gates\Gate.hpp" />
     <ClInclude Include="billyprints\Nodes\Gates\NOT.hpp" />
+    <ClInclude Include="billyprints\Nodes\Gates\PlaceholderGate.hpp" />
     <ClInclude Include="billyprints\Nodes\Gates\legacy\Buffer.hpp" />
     <ClInclude Include="billyprints\Nodes\Gates\legacy\NAND.hpp" />
     <ClInclude Include="billyprints\Nodes\Gates\legacy\NOR.hpp" />
@@ -142,6 +143,7 @@
     <ClCompile Include="billyprints\Nodes\Gates\CustomGate.cpp" />
     <ClCompile Include="billyprints\Nodes\Gates\Gate.cpp" />
     <ClCompile Include="billyprints\Nodes\Gates\NOT.cpp" />
+    <ClCompile Include="billyprints\Nodes\Gates\PlaceholderGate.cpp" />
     <ClCompile Include="billyprints\Nodes\Gates\legacy\Buffer.cpp" />
     <ClCompile Include="billyprints\Nodes\Gates\legacy\NAND.cpp" />
     <ClCompile Include="billyprints\Nodes\Gates\legacy\NOR.cpp" />
