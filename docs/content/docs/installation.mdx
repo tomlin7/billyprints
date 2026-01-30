@@ -1,0 +1,107 @@
+---
+title: Installation
+description: Download and install Billyprints on your system
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+import { Steps, Step } from 'fumadocs-ui/components/steps';
+import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
+
+<Callout type="info">
+Billyprints is currently available for **Windows** only. macOS and Linux support is planned for future releases.
+</Callout>
+
+## System Requirements
+
+| Component | Minimum | Recommended |
+|-----------|---------|-------------|
+| OS | Windows 10 | Windows 11 |
+| RAM | 4 GB | 8 GB |
+| GPU | OpenGL 3.3 compatible | Dedicated GPU |
+| Storage | 50 MB | 100 MB |
+
+## Download
+
+<Tabs items={['Release Build', 'Build from Source']}>
+  <Tab value="Release Build">
+    ### Pre-built Release
+
+    <Steps>
+      <Step>
+        ### Download the latest release
+
+        Download `Billyprints-vX.X.X.zip` from the releases page.
+      </Step>
+
+      <Step>
+        ### Extract the archive
+
+        Extract the ZIP file to your desired location (e.g., `C:\Program Files\Billyprints`).
+      </Step>
+
+      <Step>
+        ### Run the application
+
+        Double-click `Billyprints.exe` to launch the editor.
+      </Step>
+    </Steps>
+  </Tab>
+
+  <Tab value="Build from Source">
+    ### Building from Source
+
+    <Steps>
+      <Step>
+        ### Prerequisites
+
+        - Visual Studio 2022 with C++ Desktop Development workload
+        - Git
+      </Step>
+
+      <Step>
+        ### Clone the repository
+
+        ```bash
+        git clone https://github.com/tomlin7/billyprints.git
+        cd billyprints
+        ```
+      </Step>
+
+      <Step>
+        ### Build with MSBuild
+
+        ```bash
+        msbuild Billyprints.sln /p:Configuration=Debug /p:Platform=x64
+        ```
+      </Step>
+
+      <Step>
+        ### Run the built executable
+
+        ```bash
+        bin/Debug-windows-x86_64/Billyprints/Billyprints.exe
+        ```
+      </Step>
+    </Steps>
+  </Tab>
+</Tabs>
+
+## First Launch
+
+When you first launch Billyprints, you'll see:
+
+1. **Canvas** - The main area where you build circuits
+2. **Script Editor** - The right panel for code-based circuit design
+3. **Dock** - Quick access to common gates at the bottom
+
+<Callout type="tip">
+Press `Tab` to toggle the script editor panel, and `D` to toggle the dock.
+</Callout>
+
+## Next Steps
+
+Now that you have Billyprints installed, check out these guides:
+
+- [Quick Start](/docs/quickstart) - Build your first gate in 60 seconds
+- [Tutorial](/docs/tutorial) - Comprehensive step-by-step guide
+- [UI Overview](/docs/ui-overview) - Learn the interface

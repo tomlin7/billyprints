@@ -1,0 +1,109 @@
+---
+title: FAQ
+description: Frequently asked questions about Billyprints
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+import { Accordion, Accordions } from 'fumadocs-ui/components/accordion';
+
+# Frequently Asked Questions
+
+<Accordions>
+  <Accordion title="What gates are built-in?">
+    Billyprints includes only the fundamental gates:
+    - **AND** - Output HIGH if both inputs HIGH
+    - **NOT** - Inverts the input
+    - **In** - Interactive input (switch/button)
+    - **Out** - Visual output (LED)
+
+    All other gates (OR, XOR, NAND, NOR, XNOR) can be built from AND and NOT using Boolean algebra, or loaded from gate libraries.
+  </Accordion>
+
+  <Accordion title="Why only AND and NOT as primitives?">
+    AND and NOT together form a **functionally complete** set - any Boolean function can be expressed using just these two operations. This teaches the fundamental principle that complex digital systems are built from simple primitives.
+
+    You can define all other gates:
+    ```
+    // OR from AND and NOT (De Morgan's Law)
+    define OR(a, b) -> (out):
+      out = NOT (NOT a AND NOT b)
+    end
+    ```
+  </Accordion>
+
+  <Accordion title="Can I create sequential circuits (flip-flops, latches)?">
+    Yes! You can create feedback loops by connecting outputs back to inputs. The simulator handles propagation in steps.
+
+    ```
+    // SR Latch using NOR gates
+    NOR nor1 @ 200, 100
+    NOR nor2 @ 200, 200
+
+    nor2.out -> nor1.in1
+    nor1.out -> nor2.in1
+    ```
+
+    <Callout type="warn">
+      Be careful with feedback loops - they can cause oscillation if not designed correctly.
+    </Callout>
+  </Accordion>
+
+  <Accordion title="Is there a limit to circuit complexity?">
+    There's no hardcoded limit on:
+    - Number of nodes
+    - Nesting depth of custom gates
+    - Number of connections
+
+    Practical limits depend on your system's memory and CPU. Circuits with tens of thousands of nodes work fine on modern hardware.
+  </Accordion>
+
+  <Accordion title="Can I save my circuits?">
+    Yes! Use **File > Save Scene** (`Ctrl+S`) to save your circuit as a `.bps` file.
+
+    To save custom gates for reuse, use **File > Save Custom Gates** to create a `.bin` library file.
+  </Accordion>
+
+  <Accordion title="Why are my custom gates showing as placeholders?">
+    This happens when you open a scene that uses custom gates that aren't loaded in memory.
+
+    **Solution:** Load the gate library (`.bin` file) before opening the scene, or click the **Load Library...** button in the warning banner.
+
+    See [Gate Libraries](/docs/gate-libraries) for details.
+  </Accordion>
+
+  <Accordion title="Can I use this for learning digital logic?">
+    Absolutely! Billyprints is designed as an educational tool. You can:
+    - Visualize how gates work
+    - Build circuits from first principles
+    - Understand Boolean algebra
+    - Design combinational and sequential circuits
+    - Even build a simple CPU!
+  </Accordion>
+
+  <Accordion title="What platforms are supported?">
+    Currently **Windows only** (Windows 10/11).
+
+    macOS and Linux support is planned for future releases.
+  </Accordion>
+
+  <Accordion title="Is Billyprints open source?">
+    Yes! Billyprints is built with:
+    - C++ for core logic
+    - ImGui for the user interface
+    - ImNodes (modified fork) for the node graph
+  </Accordion>
+
+  <Accordion title="How do I report bugs or request features?">
+    Please open an issue on the GitHub repository with:
+    - Steps to reproduce (for bugs)
+    - Expected vs actual behavior
+    - Screenshots if applicable
+  </Accordion>
+</Accordions>
+
+## Still have questions?
+
+Check out these resources:
+- [Troubleshooting](/docs/troubleshooting) - Common issues and solutions
+- [DSL Reference](/docs/dsl-reference) - Complete script syntax
+- [Examples](/docs/examples) - Working circuit examples

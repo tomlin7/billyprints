@@ -3,57 +3,195 @@ title: "Tutorial: Your First Circuit"
 description: Build a simple interactive circuit using the script editor
 ---
 
+import { Callout } from 'fumadocs-ui/components/callout';
+import { Steps, Step } from 'fumadocs-ui/components/steps';
+import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
+
 This tutorial will guide you through creating a simple interactive circuit using the script editor. We will build a basic **Logic Tester** that lights up an LED when two buttons are pressed.
 
-## Step 1: Open the Script Editor
+<Callout title="Prerequisites" type="info">
+Make sure you have Billyprints installed. See the [Installation](/docs/installation) guide if needed.
+</Callout>
 
-1. Launch Billyprints.
-2. If the script editor on the right is collapsed, click the `<` button at the top-right corner to expand it.
+## Building an AND Gate Circuit
 
-## Step 2: Add Components
+<Steps>
+  <Step>
+    ### Open the Script Editor
 
-In the script editor, we will define our components. We need two switches (Inputs), one AND gate, and one LED (Output).
+    Launch Billyprints. If the script editor on the right is collapsed, click the `<` button at the top-right corner to expand it.
 
-Clear the current script and paste the following:
+    <Callout type="tip">
+      You can also press `Tab` to toggle the script editor.
+    </Callout>
+  </Step>
+
+  <Step>
+    ### Add Components
+
+    In the script editor, we'll define our components. We need:
+    - Two switches (Inputs)
+    - One AND gate
+    - One LED (Output)
+
+    Clear any existing script and paste:
+
+    ```
+    In switch1 @ 100, 100
+    In switch2 @ 100, 250
+    AND logic @ 300, 175
+    Out led @ 500, 175
+    ```
+
+    Click **Apply** (or the refresh icon). Four nodes should appear on the canvas.
+  </Step>
+
+  <Step>
+    ### Connect the Wires
+
+    Now we tell the signals where to flow. Add these lines to connect:
+    - `switch1` and `switch2` to the `logic` gate inputs
+    - The `logic` output to the `led`
+
+    ```
+    switch1.out -> logic.in0
+    switch2.out -> logic.in1
+    logic.out -> led.in
+    ```
+
+    Click **Apply**. Wires now connect your nodes!
+  </Step>
+
+  <Step>
+    ### Test Your Circuit!
+
+    1. Click the button inside **switch1** — it toggles to **ON**
+    2. The LED is still **OFF** (AND requires both inputs HIGH)
+    3. Click **switch2** to toggle it **ON**
+    4. The LED lights up! Both inputs are HIGH.
+
+    <Callout type="success">
+      Congratulations! You've built a working AND gate circuit.
+    </Callout>
+  </Step>
+</Steps>
+
+## Complete Script
+
+Here's the full script for reference:
 
 ```
 In switch1 @ 100, 100
 In switch2 @ 100, 250
 AND logic @ 300, 175
 Out led @ 500, 175
-```
 
-Click **Apply** (or the refresh icon). You should see four nodes appear on the canvas.
-
-## Step 3: Connect the Wires
-
-Now we need to tell the signals where to go. We want `switch1` and `switch2` to connect to the inputs of the `logic` gate, and the result to go to the `led`.
-
-Add these lines to the bottom of your script:
-
-```
 switch1.out -> logic.in0
 switch2.out -> logic.in1
 logic.out -> led.in
 ```
 
-Click **Apply**. You will see wires appear connecting your nodes.
+## Variations
 
-## Step 4: Test It!
+<Tabs items={['Momentary Buttons', 'NOT Gate', 'Custom OR Gate']}>
+  <Tab value="Momentary Buttons">
+    ### Momentary Push Buttons
 
-1. Locate the **switch1** and **switch2** nodes on the canvas.
-2. Click the button inside `switch1`. It should toggle to **ON**.
-3. The `led` is still **OFF** (Low).
-4. Now click `switch2` to toggle it **ON**.
-5. The `led` should light up (High/Bright)!
+    Want buttons that only stay ON while held? Add the `momentary` flag:
 
-## Bonus: Momentary Buttons
+    ```
+    In switch1 @ 100, 100 momentary
+    In switch2 @ 100, 250 momentary
+    AND logic @ 300, 175
+    Out led @ 500, 175
 
-Want a button that only stays ON while you hold it? Update your switch definitions:
+    switch1.out -> logic.in0
+    switch2.out -> logic.in1
+    logic.out -> led.in
+    ```
 
-```
-In switch1 @ 100, 100 momentary
-In switch2 @ 100, 250 momentary
-```
+    Now buttons show **PUSH** and only send a signal while clicked.
+  </Tab>
 
-Click **Apply**. Now the buttons will say **PUSH** and only send a signal while you are clicking and holding them.
+  <Tab value="NOT Gate">
+    ### Simple Inverter
+
+    A NOT gate inverts the input signal:
+
+    ```
+    In switch @ 100, 100
+    NOT inverter @ 250, 100
+    Out led @ 400, 100
+
+    switch -> inverter -> led
+    ```
+
+    When the switch is OFF, the LED is ON (and vice versa).
+  </Tab>
+
+  <Tab value="Custom OR Gate">
+    ### Building an OR Gate
+
+    Since only AND and NOT are built-in, let's build OR using De Morgan's Law:
+
+    ```
+    // Define OR: NOT(NOT(a) AND NOT(b))
+    define OR(a, b) -> (out):
+      na = NOT a
+      nb = NOT b
+      t = na AND nb
+      out = NOT t
+    end
+
+    // Use it
+    In switch1 @ 100, 100
+    In switch2 @ 100, 250
+    OR logic @ 300, 175
+    Out led @ 500, 175
+
+    switch1 -> logic.in0
+    switch2 -> logic.in1
+    logic -> led
+    ```
+
+    The LED lights up when **either** switch is ON.
+  </Tab>
+</Tabs>
+
+## Understanding the Syntax
+
+| Code | Meaning |
+|------|---------|
+| `In name @ x, y` | Create an input switch at position (x, y) |
+| `Out name @ x, y` | Create an output LED at position (x, y) |
+| `AND name @ x, y` | Create an AND gate at position (x, y) |
+| `NOT name @ x, y` | Create a NOT gate at position (x, y) |
+| `a.out -> b.in` | Connect a's output to b's input |
+| `momentary` | Makes input a push-button instead of toggle |
+
+## What's Next?
+
+<Cards>
+  <Card
+    title="DSL Reference"
+    description="Complete syntax documentation"
+    href="/docs/dsl-reference"
+  />
+  <Card
+    title="Custom Gates"
+    description="Build reusable gate definitions"
+    href="/docs/custom-gate-definitions"
+  />
+  <Card
+    title="Examples"
+    description="More circuit templates"
+    href="/docs/examples"
+  />
+  <Card
+    title="Keybindings"
+    description="Keyboard shortcuts"
+    href="/docs/keybindings"
+  />
+</Cards>
+
+import { Cards, Card } from 'fumadocs-ui/components/card';

@@ -1,0 +1,163 @@
+---
+title: UI Overview
+description: Learn the Billyprints interface and its components
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
+
+# User Interface Overview
+
+Billyprints has a clean, focused interface designed for efficient circuit design.
+
+## Main Components
+
+### 1. Canvas
+
+The central workspace where you build and visualize circuits.
+
+**Interactions:**
+- **Pan** - Click and drag on empty space, or use middle mouse button
+- **Zoom** - Scroll wheel, or use `+`/`-` keys
+- **Select** - Click on nodes, or drag a selection box
+- **Multi-select** - Hold `Ctrl` and click nodes
+- **Connect** - Drag from an output slot to an input slot
+
+<Callout type="tip">
+Press `F` to frame your selection (or all nodes if nothing is selected). Press `Home` to reset the view.
+</Callout>
+
+### 2. Script Editor
+
+The right panel for text-based circuit definition.
+
+**Features:**
+- Bidirectional sync with the canvas
+- Syntax highlighting
+- Error reporting
+- Apply button to update the circuit
+
+**Toggle:** Press `Tab` to show/hide
+
+### 3. Dock
+
+Quick access bar at the bottom for spawning common gates.
+
+**Available Gates:**
+- `In` - Input switch
+- `Out` - Output LED
+- `AND` - AND gate
+- `NOT` - NOT gate
+- Custom gates you've created
+
+**Toggle:** Press `D` to show/hide
+
+### 4. Context Menu
+
+Right-click on the canvas to access:
+- Create new nodes
+- Paste nodes
+- Canvas options
+
+Right-click on a node to access:
+- Edit node
+- Delete node
+- Duplicate node
+- Create gate from selection
+
+## Node Anatomy
+
+<Tabs items={['Input Node', 'Gate Node', 'Output Node']}>
+  <Tab value="Input Node">
+    ### Input Node (In)
+
+    ```
+    ┌─────────────┐
+    │   [TOGGLE]  │──○ out
+    │     In      │
+    └─────────────┘
+    ```
+
+    - Click the button to toggle ON/OFF
+    - One output slot
+    - Can be `momentary` (push button) or toggle (switch)
+  </Tab>
+
+  <Tab value="Gate Node">
+    ### Gate Node (AND, NOT, etc.)
+
+    ```
+          ┌─────────────┐
+    ○──in0│             │
+          │    AND      │──○ out
+    ○──in1│             │
+          └─────────────┘
+    ```
+
+    - Input slots on the left (filled = connected)
+    - Output slots on the right
+    - Color indicates gate type
+  </Tab>
+
+  <Tab value="Output Node">
+    ### Output Node (Out)
+
+    ```
+    ┌─────────────┐
+    │     ◉       │
+    │    Out      │
+    └─────────────┘
+    ```
+
+    - Visual indicator (LED)
+    - Bright when HIGH, dim when LOW
+    - One input slot
+  </Tab>
+</Tabs>
+
+## Connections
+
+### Creating Connections
+
+1. **Drag from output to input** - Click and drag from an output slot (right side) to an input slot (left side)
+2. **Drag from input to output** - Also works in reverse
+
+### Connection Rules
+
+<Callout type="warn">
+Each input can only have **one** connection. Creating a new connection to an occupied input replaces the existing one.
+</Callout>
+
+- Outputs can connect to multiple inputs
+- You cannot connect an output to another output
+- You cannot connect an input to another input
+- Connections show signal state (bright = HIGH, dim = LOW)
+
+### Deleting Connections
+
+- Click on a connection to select it, then press `Delete`
+- Or drag a new connection to the same input to replace it
+
+## Keyboard Shortcuts
+
+See the full [Keybindings](/docs/keybindings) reference.
+
+| Action | Shortcut |
+|--------|----------|
+| Toggle script editor | `Tab` |
+| Toggle dock | `D` |
+| Frame selection | `F` |
+| Delete selected | `Delete` |
+| Duplicate | `Ctrl+D` |
+| Select all | `Ctrl+A` |
+| Quick spawn | `Space` |
+
+## Themes
+
+Billyprints uses a dark theme by default, optimized for reduced eye strain during extended use.
+
+## Next Steps
+
+- [Keybindings](/docs/keybindings) - Full keyboard reference
+- [Tutorial](/docs/tutorial) - Hands-on circuit building
+- [DSL Reference](/docs/dsl-reference) - Script syntax details

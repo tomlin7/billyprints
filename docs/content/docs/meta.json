@@ -1,17 +1,24 @@
 {
   "title": "Documentation",
+  "root": true,
   "pages": [
     "index",
-    "tutorial",
-    "keybindings",
     "---Getting Started---",
+    "installation",
+    "quickstart",
+    "tutorial",
+    "ui-overview",
+    "keybindings",
+    "---Scripting---",
     "dsl-reference",
     "custom-gate-definitions",
     "examples",
-    "---Libraries---",
+    "---Libraries & Files---",
     "gate-libraries",
     "file-formats",
-    "---Showcase---",
-    "demos"
+    "---Resources---",
+    "demos",
+    "faq",
+    "troubleshooting"
   ]
 }

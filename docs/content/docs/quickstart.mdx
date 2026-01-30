@@ -1,0 +1,102 @@
+---
+title: Quick Start
+description: Build your first logic circuit in under 60 seconds
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+import { Steps, Step } from 'fumadocs-ui/components/steps';
+
+# Quick Start
+
+Get a working circuit running in under a minute.
+
+<Steps>
+  <Step>
+    ### Open Billyprints
+
+    Launch the application. You'll see an empty canvas with a script editor on the right.
+  </Step>
+
+  <Step>
+    ### Paste this script
+
+    Copy and paste this into the script editor:
+
+    ```
+    In A @ 100, 100
+    In B @ 100, 200
+    AND gate @ 250, 150
+    Out LED @ 400, 150
+
+    A -> gate.in0
+    B -> gate.in1
+    gate -> LED
+    ```
+  </Step>
+
+  <Step>
+    ### Click Apply
+
+    Press the **Apply** button (or refresh icon) in the script editor.
+  </Step>
+
+  <Step>
+    ### Test your circuit
+
+    Click on the **A** and **B** input nodes to toggle them. The LED lights up when both are ON!
+  </Step>
+</Steps>
+
+<Callout type="success">
+Congratulations! You've built an AND gate circuit. Both inputs must be HIGH for the output to be HIGH.
+</Callout>
+
+## What Just Happened?
+
+| Line | Meaning |
+|------|---------|
+| `In A @ 100, 100` | Create an input switch named "A" at position (100, 100) |
+| `In B @ 100, 200` | Create an input switch named "B" at position (100, 200) |
+| `AND gate @ 250, 150` | Create an AND gate named "gate" at position (250, 150) |
+| `Out LED @ 400, 150` | Create an output LED named "LED" at position (400, 150) |
+| `A -> gate.in0` | Connect A's output to gate's first input |
+| `B -> gate.in1` | Connect B's output to gate's second input |
+| `gate -> LED` | Connect gate's output to the LED |
+
+## Try These Variations
+
+### NOT Gate (Inverter)
+
+```
+In switch @ 100, 100
+NOT inverter @ 250, 100
+Out LED @ 400, 100
+
+switch -> inverter -> LED
+```
+
+### OR Gate (using NAND gates)
+
+```
+define OR(a, b) -> (out):
+  na = NOT a
+  nb = NOT b
+  t = na AND nb
+  out = NOT t
+end
+
+In A @ 100, 100
+In B @ 100, 200
+OR gate @ 250, 150
+Out LED @ 400, 150
+
+A -> gate.in0
+B -> gate.in1
+gate -> LED
+```
+
+## Next Steps
+
+- [Full Tutorial](/docs/tutorial) - Build more complex circuits
+- [DSL Reference](/docs/dsl-reference) - Complete syntax guide
+- [Examples](/docs/examples) - Ready-to-use circuit templates

@@ -1,0 +1,184 @@
+---
+title: Troubleshooting
+description: Solutions to common issues in Billyprints
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+import { Accordion, Accordions } from 'fumadocs-ui/components/accordion';
+
+# Troubleshooting
+
+Common issues and how to fix them.
+
+## Script Errors
+
+<Accordions>
+  <Accordion title="'Unknown type' error">
+    **Symptom:** Error message like `Unknown type: XOR`
+
+    **Cause:** You're trying to use a gate that hasn't been defined or loaded.
+
+    **Solutions:**
+    1. Define the gate before using it:
+    ```
+    define XOR(a, b) -> (out):
+      // ... definition
+    end
+
+    XOR mygate @ 100, 100  // Now this works
+    ```
+
+    2. Or load a gate library that contains the gate (**File > Load Custom Gates**)
+  </Accordion>
+
+  <Accordion title="'Duplicate identifier' error">
+    **Symptom:** Error message about duplicate node names
+
+    **Cause:** Two nodes have the same identifier.
+
+    **Solution:** Use unique names for each node:
+    ```
+    // Wrong
+    AND gate @ 100, 100
+    AND gate @ 200, 100  // Duplicate!
+
+    // Correct
+    AND gate1 @ 100, 100
+    AND gate2 @ 200, 100
+    ```
+  </Accordion>
+
+  <Accordion title="'Invalid slot' error">
+    **Symptom:** Error when creating connections
+
+    **Cause:** Referencing a slot that doesn't exist on the node.
+
+    **Solution:** Check the slot names for your node type:
+    - `In` nodes have: `out`
+    - `Out` nodes have: `in`
+    - `AND` gates have: `in0`, `in1`, `out`
+    - `NOT` gates have: `in`, `out`
+    - Custom gates use: `in0`, `in1`, ... and `out0`, `out1`, ...
+  </Accordion>
+
+  <Accordion title="Script changes not applying">
+    **Symptom:** Editing the script doesn't update the canvas
+
+    **Solution:**
+    1. Make sure you click **Apply** (or the refresh icon)
+    2. Check for syntax errors in the script
+    3. Look for error messages at the bottom of the script editor
+  </Accordion>
+</Accordions>
+
+## Circuit Issues
+
+<Accordions>
+  <Accordion title="Circuit not simulating correctly">
+    **Symptom:** Outputs don't match expected behavior
+
+    **Possible causes:**
+    1. **Missing connections** - Check that all inputs are connected
+    2. **Wrong slot** - Verify you connected to the correct input slot
+    3. **Logic error** - Review your gate definitions
+
+    **Debug tips:**
+    - Add `Out` nodes to intermediate signals to see their values
+    - Simplify the circuit and test each part separately
+  </Accordion>
+
+  <Accordion title="Feedback loop causing oscillation">
+    **Symptom:** Circuit rapidly toggles or behaves erratically
+
+    **Cause:** Unstable feedback loop (e.g., `NOT` feeding back into itself)
+
+    **Solutions:**
+    1. Add a gating signal to control when feedback occurs
+    2. Use proper latch/flip-flop designs
+    3. Add an enable input to break the loop when needed
+  </Accordion>
+
+  <Accordion title="Performance slowdown with large circuits">
+    **Symptom:** UI becomes sluggish with many nodes
+
+    **Solutions:**
+    1. Group related logic into custom gates to reduce visible nodes
+    2. Close unused panels (script editor, dock)
+    3. Avoid unnecessary visual updates by zooming out
+
+    <Callout type="info">
+      The simulation itself is optimized with caching. Visual rendering is usually the bottleneck.
+    </Callout>
+  </Accordion>
+</Accordions>
+
+## File Issues
+
+<Accordions>
+  <Accordion title="Custom gates showing as placeholders (red nodes)">
+    **Symptom:** Nodes appear red with "?" prefix after loading a scene
+
+    **Cause:** Scene uses custom gates that aren't loaded in memory.
+
+    **Solution:**
+    1. Click **Load Library...** in the warning banner
+    2. Select the correct `.bin` file
+    3. Placeholders will automatically convert to real gates
+
+    <Callout type="tip">
+      Always load gate libraries **before** opening scenes that use them.
+    </Callout>
+  </Accordion>
+
+  <Accordion title="Can't open old scene files">
+    **Symptom:** Error loading a `.bps` file
+
+    **Possible causes:**
+    1. File corruption
+    2. Scene uses gates from an unavailable library
+
+    **Solutions:**
+    1. Try loading any required gate libraries first
+    2. Check if the file was saved with a newer version
+  </Accordion>
+
+  <Accordion title="Gates not saving to library">
+    **Symptom:** Custom gates disappear after restart
+
+    **Cause:** Gates exist only in memory until explicitly saved.
+
+    **Solution:** Use **File > Save Custom Gates** to save your gates to a `.bin` file.
+  </Accordion>
+</Accordions>
+
+## Display Issues
+
+<Accordions>
+  <Accordion title="Nodes or connections not rendering">
+    **Symptom:** Parts of the circuit are invisible
+
+    **Solutions:**
+    1. Press `Home` to reset the view
+    2. Press `F` to frame all nodes
+    3. Check if nodes are positioned far outside the visible area
+    4. Try restarting the application
+  </Accordion>
+
+  <Accordion title="UI text is too small/large">
+    **Symptom:** Interface elements are hard to read
+
+    **Solutions:**
+    1. Adjust your system DPI settings
+    2. Use zoom controls (`+`/`-`) for the canvas
+    3. Check your monitor scaling settings
+  </Accordion>
+</Accordions>
+
+## Still Stuck?
+
+If you can't find a solution here:
+
+1. Check the [FAQ](/docs/faq) for common questions
+2. Review the [DSL Reference](/docs/dsl-reference) for syntax help
+3. Look at [Examples](/docs/examples) for working circuit patterns
+4. Open an issue on GitHub with detailed reproduction steps
