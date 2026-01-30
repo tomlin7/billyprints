@@ -1,0 +1,17 @@
+{
+  "title": "Documentation",
+  "pages": [
+    "index",
+    "tutorial",
+    "keybindings",
+    "---Getting Started---",
+    "dsl-reference",
+    "custom-gate-definitions",
+    "examples",
+    "---Libraries---",
+    "gate-libraries",
+    "file-formats",
+    "---Showcase---",
+    "demos"
+  ]
+}

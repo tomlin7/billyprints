@@ -1,4 +1,7 @@
-# Billyprints DSL Reference
+---
+title: DSL Reference
+description: Complete reference for the Billyprints Domain Specific Language
+---
 
 Billyprints uses a simple text-based Domain Specific Language (DSL) to describe digital logic circuits. The script is bidirectional: changes in the script update the visual graph, and changes in the graph update the script.
 
@@ -127,7 +130,7 @@ sw2 -> gate1.in1
 - Nested calls are not allowed; use intermediate signals
 - Input/output order determines slot numbering (`in0`, `in1`, `out0`, `out1`)
 
-For detailed tutorials, see [CustomGateDefinitions.md](CustomGateDefinitions.md).
+For detailed tutorials, see [Custom Gate Definitions](/docs/custom-gate-definitions).
 
 ---
 
@@ -142,4 +145,4 @@ The following node types are built-in:
 | `AND` | 2 (`in0`, `in1`) | 1 (`out`) | Output is HIGH only if both inputs are HIGH. |
 | `NOT` | 1 (`in`) | 1 (`out`) | Inverts the input signal. |
 
-**Note:** Other gates (OR, XOR, NAND, etc.) must be defined by the user or loaded from a gate library. See [CustomGateDefinitions.md](CustomGateDefinitions.md) for examples.
+**Note:** Other gates (OR, XOR, NAND, etc.) must be defined by the user or loaded from a gate library. See [Custom Gate Definitions](/docs/custom-gate-definitions) for examples.
