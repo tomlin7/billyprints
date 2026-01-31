@@ -447,23 +447,41 @@ function DockItem({
 function Dock() {
   return (
     <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20">
+      {/* Background Plate / Instruction Layer */}
       <div
-        className="flex items-center gap-1.5 p-1.5 rounded-xl border border-white/5 shadow-2xl overflow-hidden"
+        className="relative flex items-center pt-6 px-0.5 pb-0.5 rounded-2xl border border-white/5 shadow-2xl bg-[#0a0a0a]"
         style={{
-          background: "linear-gradient(to bottom, #121212, #0d0d0d)",
-          boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255,255,255,0.05)",
+          background: "linear-gradient(to bottom, #181818, #0e0e0e)",
+          boxShadow: "0 20px 50px rgba(0,0,0,0.8), inset 0 1px 0 rgba(255,255,255,0.05)",
         }}
       >
-        <div className="flex gap-1">
-          {dockItems.map((item) => (
-            <DockItem
-              key={item.id}
-              item={item}
-              isDownload={false}
-            />
-          ))}
-          <button>
-            <a href="https://github.com/tomlin7/BillyPrints/releases" download>
+        {/* Instruction Hint */}
+        <div className="absolute top-0 left-0 right-0 text-center">
+          <span className="text-[12px] font-mono text-white/30 uppercase tracking-[0.3em]">
+            Click nodes to toggle
+          </span>
+        </div>
+
+        {/* Main Floating Dock */}
+        <div
+          className="flex items-center gap-1.5 p-1.5 rounded-xl border border-white/10 shadow-lg"
+          style={{
+            background: "linear-gradient(to bottom, #181818, #0e0e0e)",
+            boxShadow: "0 4px 20px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.05)",
+          }}
+        >
+          <div className="flex gap-1">
+            {dockItems.map((item) => (
+              <DockItem
+                key={item.id}
+                item={item}
+                isDownload={false}
+              />
+            ))}
+            <a
+              href="https://github.com/tomlin7/BillyPrints/releases"
+              className="flex items-center"
+            >
               <DockItem
                 item={{
                   id: "download",
@@ -473,7 +491,7 @@ function Dock() {
                 isDownload={true}
               />
             </a>
-          </button>
+          </div>
         </div>
       </div>
     </div>
