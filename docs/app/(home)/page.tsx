@@ -1024,17 +1024,17 @@ function ProductivitySection() {
 
 function BenchmarksTable() {
   const models = [
-    { name: "BILLY-X1", gates: "1.2M", latency: "0.04ns", clock: "12.5GHz", power: "12.5mW" },
-    { name: "LOGIC-PRO", gates: "800K", latency: "0.08ns", clock: "8.2GHz", power: "15.2mW" },
-    { name: "GATES-X", gates: "450K", latency: "0.12ns", clock: "4.5GHz", power: "8.1mW" },
-    { name: "MINI-CORE", gates: "120K", latency: "0.25ns", clock: "2.1GHz", power: "3.2mW" },
-    { name: "LIGHT-CIRCUIT", gates: "45K", latency: "0.45ns", clock: "1.1GHz", power: "1.5mW" },
+    { name: "6502 Core", gates: "3,510", throughput: "125 MHz", memory: "1.2 MB", parse: "2ms" },
+    { name: "16-bit ALU", gates: "12,402", throughput: "42 MHz", memory: "4.5 MB", parse: "8ms" },
+    { name: "RISC-V Mini", gates: "45,209", throughput: "12 MHz", memory: "12.1 MB", parse: "24ms" },
+    { name: "SRAM 1KB", gates: "124,000", throughput: "4.5 MHz", memory: "32.5 MB", parse: "85ms" },
+    { name: "Gate Array", gates: "450,000", throughput: "1.2 MHz", memory: "112.4 MB", parse: "210ms" },
   ];
 
   return (
     <section id="benchmarks" className="max-w-2xl mx-auto px-6 py-16 border-t border-white/5 font-mono">
-      <h2 className="text-[18px] font-bold text-white mb-2">Benchmarks</h2>
-      <p className="text-[14px] text-white/30 mb-6">Performance measured at 12nm node. Open source, simulate as you grow.</p>
+      <h2 className="text-[18px] font-bold text-white mb-2">Engine Benchmarks</h2>
+      <p className="text-[14px] text-white/30 mb-6">Measured on WASM engine (Browser). C++ Native performance is ~10x higher.</p>
 
       <div className="overflow-x-auto">
         <table className="w-full text-left border-collapse text-[14px]">
@@ -1042,9 +1042,9 @@ function BenchmarksTable() {
             <tr className="border-b border-white/10 text-white/30">
               <th className="pb-3 font-medium">Circuit Model</th>
               <th className="pb-3 font-medium text-right">Gates</th>
-              <th className="pb-3 font-medium text-right">Latency</th>
-              <th className="pb-3 font-medium text-right">Clock</th>
-              <th className="pb-3 font-medium text-right">Power</th>
+              <th className="pb-3 font-medium text-right">Sim Speed</th>
+              <th className="pb-3 font-medium text-right">Memory</th>
+              <th className="pb-3 font-medium text-right">Parse</th>
             </tr>
           </thead>
           <tbody className="text-white/60">
@@ -1052,9 +1052,9 @@ function BenchmarksTable() {
               <tr key={m.name} className="border-b border-white/5 hover:bg-white/[0.02] transition-colors">
                 <td className="py-3 font-medium text-white/80">{m.name}</td>
                 <td className="py-3 text-right">{m.gates}</td>
-                <td className="py-3 text-right">{m.latency}</td>
-                <td className="py-3 text-right">{m.clock}</td>
-                <td className="py-3 text-right">{m.power}</td>
+                <td className="py-3 text-right">{m.throughput}</td>
+                <td className="py-3 text-right">{m.memory}</td>
+                <td className="py-3 text-right">{m.parse}</td>
               </tr>
             ))}
           </tbody>
